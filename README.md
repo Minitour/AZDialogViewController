@@ -4,7 +4,7 @@ A highly customizable alert dialog controller that mimics Snapchat's alert dialo
 
 ##Screenshots
 |         |            |
-| ------------- |:-------------:| 
+| :-------------: |:-------------:| 
 | <img src="Screenshots/sc_1.png" height="320" /> | <img src="Screenshots/sc_2.png" height="320" /> |
 | <img src="Screenshots/sc_3.png" height="320" /> | <img src="Screenshots/sc_4.png" height="320" /> |
  
