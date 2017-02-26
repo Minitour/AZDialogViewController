@@ -1,6 +1,14 @@
 # AZDialogViewController
 A highly customizable alert dialog controller that mimics Snapchat's alert dialog.
 
+
+##Screenshots
+|         |            |
+| ------------- |:-------------:| 
+| <img src="Screenshots/sc_1.png" height="320" /> | <img src="Screenshots/sc_2.png" height="320" /> |
+| <img src="Screenshots/sc_3.png" height="320" /> | <img src="Screenshots/sc_4.png" height="320" /> |
+ 
+
 ##Usage
 
 Create an instance of AZDialogViewController:
@@ -53,6 +61,28 @@ dialogController.buttonStyle = { (button,height,position) in
 }
 ```
 
+####Customize Tool Buttons:
+```swift
+dialogController.rightToolStyle = { (button) in
+        button.setImage(UIImage(named: "ic_share"), for: [])
+        button.tintColor = .lightGray
+        return true
+}      
+dialogController.rightToolAction = { (button) in
+        print("Share function")
+}
+
+dialogController.leftToolStyle = { (button) in
+        button.setImage(UIImage(named: "ic_share"), for: [])
+        button.tintColor = .lightGray
+        return true
+}      
+dialogController.leftToolAction = { (button) in
+        print("Share function")
+}
+
+```
+
 ####Customize Cancel Button Style:
 ```swift
 dialogController.cancelButtonStyle = { (button,height) in
@@ -65,5 +95,4 @@ dialogController.cancelButtonStyle = { (button,height) in
 ####Present The dialog:
 ```swift
 dialogController.show(in: self)
-//Where self is the current view controller.
 ```
