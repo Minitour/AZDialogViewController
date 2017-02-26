@@ -12,7 +12,7 @@
 		9D6F3FEE1E62E18000B70203 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9D6F3FEC1E62E18000B70203 /* Main.storyboard */; };
 		9D6F3FF01E62E18000B70203 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9D6F3FEF1E62E18000B70203 /* Assets.xcassets */; };
 		9D6F3FF31E62E18000B70203 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9D6F3FF11E62E18000B70203 /* LaunchScreen.storyboard */; };
-		9D6F3FFB1E62E27C00B70203 /* AZDialogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D6F3FFA1E62E27C00B70203 /* AZDialogViewController.swift */; };
+		9DDAB3761E639C6F005D257E /* AZDialogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DDAB3751E639C6F005D257E /* AZDialogViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,7 +23,7 @@
 		9D6F3FEF1E62E18000B70203 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9D6F3FF21E62E18000B70203 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		9D6F3FF41E62E18000B70203 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		9D6F3FFA1E62E27C00B70203 /* AZDialogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AZDialogViewController.swift; sourceTree = "<group>"; };
+		9DDAB3751E639C6F005D257E /* AZDialogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AZDialogViewController.swift; path = ../Sources/AZDialogViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -40,6 +40,7 @@
 		9D6F3FDC1E62E18000B70203 = {
 			isa = PBXGroup;
 			children = (
+				9DDAB3771E639C8B005D257E /* Source */,
 				9D6F3FE71E62E18000B70203 /* AZDialogViewControllerExample */,
 				9D6F3FE61E62E18000B70203 /* Products */,
 			);
@@ -58,13 +59,20 @@
 			children = (
 				9D6F3FE81E62E18000B70203 /* AppDelegate.swift */,
 				9D6F3FEA1E62E18000B70203 /* ViewController.swift */,
-				9D6F3FFA1E62E27C00B70203 /* AZDialogViewController.swift */,
 				9D6F3FEC1E62E18000B70203 /* Main.storyboard */,
 				9D6F3FEF1E62E18000B70203 /* Assets.xcassets */,
 				9D6F3FF11E62E18000B70203 /* LaunchScreen.storyboard */,
 				9D6F3FF41E62E18000B70203 /* Info.plist */,
 			);
 			path = AZDialogViewControllerExample;
+			sourceTree = "<group>";
+		};
+		9DDAB3771E639C8B005D257E /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				9DDAB3751E639C6F005D257E /* AZDialogViewController.swift */,
+			);
+			name = Source;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -142,7 +150,7 @@
 			files = (
 				9D6F3FEB1E62E18000B70203 /* ViewController.swift in Sources */,
 				9D6F3FE91E62E18000B70203 /* AppDelegate.swift in Sources */,
-				9D6F3FFB1E62E27C00B70203 /* AZDialogViewController.swift in Sources */,
+				9DDAB3761E639C6F005D257E /* AZDialogViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
