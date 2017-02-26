@@ -14,6 +14,8 @@ class ViewController: UIViewController {
     
     let primaryColorDark = #colorLiteral(red: 0.5373370051, green: 0.2116269171, blue: 0.7118118405, alpha: 1)
     
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -32,18 +34,18 @@ class ViewController: UIViewController {
             editUserDialog()
         case 2:
             reportUserDialog(controller: self)
+        case 3:
+            reportDialog()
         default:
             break
         }
     }
     
-    
     func ignDialog(){
-        let dialogController = AZDialogViewController(title: "IGN", message: "IGN is your destination for gaming, movies, comics and everything you're into. Find the latest reviews, news, videos, and more more.")
+        let dialogController = AZDialogViewController(title: "IGN",
+                                                      message: "IGN is your destination for gaming, movies, comics and everything you're into. Find the latest reviews, news, videos, and more more.")
         
         dialogController.showSeparator = true
-        
-        //dialogController.showImage = true
         
         dialogController.imageHandler = { (imageView) in
             imageView.image = #imageLiteral(resourceName: "ign")
@@ -52,10 +54,9 @@ class ViewController: UIViewController {
         }
         
         dialogController.addAction(AZDialogAction(title: "Subscribe", handler: { (dialog) -> (Void) in
-            //dialog.spacing = dialog.spacing + 10
+            dialog.dismiss()
         }))
         
-        //let color = #colorLiteral(red: 0.6271930337, green: 0.3653797209, blue: 0.8019730449, alpha: 1) //colorWithHexString("#25d366")
         dialogController.buttonStyle = { (button,height,position) in
             button.setBackgroundImage(UIImage.imageWithColor(self.primaryColor) , for: .normal)
             button.setBackgroundImage(UIImage.imageWithColor(self.primaryColorDark), for: .highlighted)
@@ -73,7 +74,6 @@ class ViewController: UIViewController {
         }
         
         dialogController.rightToolStyle = { (button) in
-            //button.backgroundColor = .red
             button.setImage(#imageLiteral(resourceName: "share"), for: [])
             button.tintColor = .lightGray
             return true
@@ -83,7 +83,7 @@ class ViewController: UIViewController {
             print("Share function")
         }
         
-        dialogController.dismissWithGesture = true
+        dialogController.dismissDirection = .bottom
         
         dialogController.dismissWithOutsideTouch = true
         
@@ -121,7 +121,7 @@ class ViewController: UIViewController {
             button.layer.borderColor = self.primaryColor.cgColor
         }
         
-        dialogController.dismissWithGesture = true
+        dialogController.dismissDirection = .bottom
         
         dialogController.dismissWithOutsideTouch = true
         
@@ -131,7 +131,7 @@ class ViewController: UIViewController {
     
     func reportUserDialog(controller: UIViewController){
         let dialogController = AZDialogViewController(title: "Minitour has been blocked.", message: "Let us know your reason for blocking them?")
-        dialogController.dismissWithGesture = false
+        dialogController.dismissDirection = .none
         dialogController.dismissWithOutsideTouch = false
         
         dialogController.addAction(AZDialogAction(title: "Annoying", handler: { (dialog) -> (Void) in
@@ -165,6 +165,51 @@ class ViewController: UIViewController {
         dialogController.show(in: controller)
     }
 
+    func reportDialog(){
+        let dialogController = AZDialogViewController(title: "Report Pack", message: "Please let us know the reason you are reporting this pack.",buttonsHeight: 35)
+        dialogController.dismissDirection = .bottom
+        
+        dialogController.dismissWithOutsideTouch = true
+        
+        let primary = #colorLiteral(red: 0, green: 0.8213806748, blue: 0.4752416015, alpha: 1)
+        let primaryDark = #colorLiteral(red: 0, green: 0.7293747497, blue: 0.4250124319, alpha: 1)
+        
+        dialogController.buttonStyle = { (button,height,position) in
+            button.tintColor = primary
+            button.setTitleColor(.white, for: [])
+            //button.setTitleColor(primary, for: .normal)
+            button.setBackgroundImage(UIImage.imageWithColor(primary) , for: .normal)
+            button.setBackgroundImage(UIImage.imageWithColor(primaryDark) , for: .highlighted)
+            button.layer.masksToBounds = true
+            button.layer.cornerRadius = 5
+
+            button.layer.borderWidth = 0
+        }
+        
+        dialogController.cancelButtonStyle = { (button, height) in
+            button.tintColor = primary
+            button.setTitle("CANCEL", for: [])
+            return true
+        }
+        
+        dialogController.addAction(AZDialogAction(title: "Not for me", handler: { (dialog) -> (Void) in
+            dialog.dismiss()
+        }))
+        
+        dialogController.addAction(AZDialogAction(title: "Spam", handler: { (dialog) -> (Void) in
+            dialog.dismiss()
+        }))
+        
+        dialogController.addAction(AZDialogAction(title: "Offensive Content", handler: { (dialog) -> (Void) in
+            dialog.dismiss()
+        }))
+        
+        dialogController.addAction(AZDialogAction(title: "Other", handler: { (dialog) -> (Void) in
+            dialog.dismiss()
+        }))
+        
+        dialogController.show(in: self)
+    }
 }
 
 extension UIImage {

@@ -55,8 +55,6 @@ open class AZDialogViewController: UIViewController{
     // Show separator
     open var showSeparator = true
     
-    open var dismissWithGesture = true
-    
     open var dismissWithOutsideTouch = true
     
     open var buttonStyle: ((UIButton,_ height: CGFloat,_ position: Int)->Void)?
@@ -73,23 +71,63 @@ open class AZDialogViewController: UIViewController{
     
     open var imageHandler: ((UIImageView)->Bool)?
     
-    open private (set) var spacing: CGFloat = 8
+    open var dismissDirection: AZDialogDismissDirection = .both
     
-    open private (set) var stackSpacing: CGFloat = 10
+    open private (set) var spacing: CGFloat = 0
     
-    open private (set) var sideSpacing: CGFloat = 20
+    open private (set) var stackSpacing: CGFloat = 0
     
-    open private (set) var titleFontSize: CGFloat = 19
+    open private (set) var sideSpacing: CGFloat = 0
     
-    open private (set) var messageFontSize: CGFloat = 15
+    open private (set) var titleFontSize: CGFloat = 0
     
-    open private (set) var buttonHeight: CGFloat = 45
+    open private (set) var messageFontSize: CGFloat = 0
     
-    open private (set) var cancelButtonHeight:CGFloat = 30
+    open private (set) var buttonHeight: CGFloat = 0
+    
+    open private (set) var cancelButtonHeight:CGFloat = 0
     
     open private (set) var fontName = "AvenirNext-Medium"
     
     open private (set) var fontNameBold = "AvenirNext-DemiBold"
+    
+    
+    /// The primary fuction to present the dialog.
+    ///
+    /// - Parameter controller: The View controller in which you wish to present the dialog.
+    open func show(in controller: UIViewController){
+        let navigationController = FixedNavigationController(rootViewController: self)
+        navigationController.isNavigationBarHidden = true
+        navigationController.modalPresentationStyle = .overFullScreen
+        navigationController.modalTransitionStyle = .crossDissolve
+        controller.present(navigationController, animated: false, completion: nil)
+    }
+    
+    /// The primary function to dismiss the dialog.
+    ///
+    /// - Parameters:
+    ///   - animated: Should it dismiss with animation? default is true.
+    ///   - completion: Completion block that is called after the controller is dismiss.
+    open override func dismiss(animated: Bool = true,completion: (()->Void)?=nil){
+        if animated {
+            UIView.animate(withDuration: 0.2, animations: { () -> Void in
+                self.baseView.center.y = (self.baseView.superview?.frame.maxY)! + (self.baseView.frame.midY)
+                self.view.backgroundColor = .clear
+            }, completion: { (complete) -> Void in
+                super.dismiss(animated: false, completion: completion)
+            })
+        }else{
+            super.dismiss(animated: false, completion: completion)
+        }
+    }
+    
+    
+    /// Add an action button to the dialog. Make sure you add the actions before calling the .show() function.
+    ///
+    /// - Parameter action: The AZDialogAction.
+    open func addAction(_ action: AZDialogAction){
+        actions.append(action)
+    }
     
     override open func loadView() {
         super.loadView()
@@ -105,13 +143,14 @@ open class AZDialogViewController: UIViewController{
         leftToolItem = UIButton(type: .system)
         rightToolItem = UIButton(type: .system)
         
+        if spacing == -1 {spacing = self.view.bounds.height * 0.012}
+        if stackSpacing == -1 {stackSpacing = self.view.bounds.height * 0.015}
         let margins = self.view!
         let side = margins.bounds.size.width / 8
-        let labelWidth = margins.bounds.width - side * 2 - sideSpacing * 2
+        let labelWidth = margins.bounds.width - side * 2 - sideSpacing
         let showImage = imageHandler?(imageView) ?? false
         let imagePadding:CGFloat = 5
         let separatorColor = UIColor(colorLiteralRed: 208/255, green: 211/255, blue: 214/255, alpha: 1)
-        let backgroundColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: 0.2)
         
         // Disable translate auto resizing mask into constraints
         
@@ -135,10 +174,6 @@ open class AZDialogViewController: UIViewController{
         baseView.addSubview(cancelButton)
         imageViewHolder.addSubview(imageView)
         
-        
-        view.backgroundColor = backgroundColor
-        
-        
         // Setup Image View
         
         let imageHolderSize: CGFloat = showImage ? CGFloat(Int((margins.bounds.width - 2 * side) / 3))  : 0
@@ -154,13 +189,13 @@ open class AZDialogViewController: UIViewController{
         if showImage {
             imageView.layer.cornerRadius = (imageHolderSize - 2 * imagePadding) / 2
             imageView.layer.masksToBounds = true
-            imageView.backgroundColor = UIColor.red
             imageView.topAnchor.constraint(equalTo: imageViewHolder.topAnchor, constant: imagePadding).isActive = true
             imageView.rightAnchor.constraint(equalTo: imageViewHolder.rightAnchor, constant: -imagePadding).isActive = true
             imageView.leftAnchor.constraint(equalTo: imageViewHolder.leftAnchor, constant: imagePadding).isActive = true
             imageView.bottomAnchor.constraint(equalTo: imageViewHolder.bottomAnchor, constant: -imagePadding).isActive = true
         }
         
+        if titleFontSize == 0 {titleFontSize = self.view.bounds.height * 0.0269}
         // Setup Title Label
         let titleFont = UIFont(name: fontNameBold, size: titleFontSize)
         let titleHeight:CGFloat = mTitle == nil ? 0 : heightForView(mTitle!, font: titleFont!, width: labelWidth)
@@ -170,8 +205,6 @@ open class AZDialogViewController: UIViewController{
         titleLabel.font = titleFont
         titleLabel.textAlignment = .center
         titleLabel.topAnchor.constraint(equalTo: imageViewHolder.bottomAnchor, constant: spacing + spacing * imageMultiplier).isActive = true
-        //titleLabel.rightAnchor.constraint(equalTo: baseView.rightAnchor,constant: -sideSpacing).isActive = true
-        //titleLabel.leftAnchor.constraint(equalTo: baseView.leftAnchor,constant: sideSpacing).isActive = true
         titleLabel.centerXAnchor.constraint(equalTo: baseView.centerXAnchor).isActive = true
         titleLabel.heightAnchor.constraint(equalToConstant: titleHeight).isActive = true
         titleLabel.widthAnchor.constraint(lessThanOrEqualTo: messageLabel.widthAnchor, multiplier: 1.0).isActive = true
@@ -182,15 +215,13 @@ open class AZDialogViewController: UIViewController{
         let seperatorMultiplier: CGFloat = seperatorHeight > 0 ? 1.0 : 0.0
         seperatorView.backgroundColor = separatorColor
         seperatorView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor,constant: spacing * seperatorMultiplier).isActive = true
-        //seperatorView.leadingAnchor.constraint(equalTo: baseView.leadingAnchor,constant: side/2).isActive = true
-        //seperatorView.trailingAnchor.constraint(equalTo: baseView.trailingAnchor,constant: -side/2).isActive = true
         seperatorView.widthAnchor.constraint(equalTo: titleLabel.widthAnchor, multiplier: 1.0).isActive = true
         seperatorView.centerXAnchor.constraint(equalTo: baseView.centerXAnchor).isActive = true
         seperatorView.heightAnchor.constraint(equalToConstant: seperatorHeight).isActive = true
         
         // Setup Message Label
         
-        
+        if messageFontSize == 0 {messageFontSize = self.view.bounds.height * 0.0239}
         let labelFont = UIFont(name: fontName, size: messageFontSize)!
         let messageLableHeight:CGFloat = mMessage == nil ? 0 : heightForView(mMessage!, font: labelFont, width: labelWidth)
         let messageLabelMultiplier: CGFloat = messageLableHeight > 0 ? 1.0 : 0.0
@@ -205,7 +236,7 @@ open class AZDialogViewController: UIViewController{
         messageLabel.heightAnchor.constraint(equalToConstant: messageLableHeight).isActive = true
         
         // Setup Buttons (StackView)
-        
+        if buttonHeight == 0 {buttonHeight = CGFloat(Int(self.view.bounds.height * 0.07))}
         let stackViewSize: Int = self.actions.count * Int(buttonHeight) + (self.actions.count-1) * Int(stackSpacing)
         let stackMultiplier:CGFloat = stackViewSize > 0 ? 1.0 : 0.0
         stackView.distribution = .fillEqually
@@ -225,7 +256,7 @@ open class AZDialogViewController: UIViewController{
             button.layer.borderColor = button.tintColor.cgColor
             button.layer.borderWidth = 1
             button.layer.cornerRadius = buttonHeight/2
-            button.titleLabel?.font = UIFont(name: fontName, size: 18)
+            button.titleLabel?.font = UIFont(name: fontName, size: buttonHeight * 0.35)
             self.buttonStyle?(button,buttonHeight,i)
             button.tag = i
             button.addTarget(self, action: #selector(AZDialogViewController.handleAction(_:)), for: .touchUpInside)
@@ -234,9 +265,9 @@ open class AZDialogViewController: UIViewController{
         
         
         // Setup Cancel button
-        
+        if cancelButtonHeight == 0 {cancelButtonHeight = self.view.bounds.height * 0.0449}
         cancelButton.setTitle("CANCEL", for: [])
-        cancelButton.titleLabel?.font = UIFont(name: fontName, size: 13)
+        cancelButton.titleLabel?.font = UIFont(name: fontName, size: cancelButtonHeight * 0.433)
         let showCancelButton = cancelButtonStyle?(cancelButton,cancelButtonHeight) ?? false
         let cancelMultiplier: CGFloat = showCancelButton ? 1.0 : 0.0
         cancelButton.isHidden = (showCancelButton ? cancelButtonHeight : 0) <= 0
@@ -246,7 +277,6 @@ open class AZDialogViewController: UIViewController{
         cancelButton.bottomAnchor.constraint(equalTo: baseView.bottomAnchor,constant: -spacing).isActive = true
         cancelButton.heightAnchor.constraint(equalToConstant: cancelButtonHeight  * cancelMultiplier).isActive = true
         cancelButton.addTarget(self, action: #selector(AZDialogViewController.cancelAction(_:)), for: .touchUpInside)
-        
         
         // Setup Base View
         
@@ -322,12 +352,15 @@ open class AZDialogViewController: UIViewController{
             baseView.isHidden = false
             UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 6.0, options: [], animations: { () -> Void in
                 self.baseView.center = (self.baseView.superview?.center)!
+                let backgroundColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: 0.2)
+                self.view.backgroundColor = backgroundColor
                 }) { (complete) -> Void in
             }
         }
     }
     
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+        
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
         setup()
     }
@@ -353,13 +386,13 @@ open class AZDialogViewController: UIViewController{
     ///   - boldFontName: The font name that will be used for the title.
     convenience init(title: String?,
                      message: String?,
-                     verticalSpacing spacing: CGFloat=8,
-                     buttonSpacing stackSpacing:CGFloat=10,
+                     verticalSpacing spacing: CGFloat = -1,
+                     buttonSpacing stackSpacing:CGFloat = 10,
                      sideSpacing: CGFloat = 20,
-                     titleFontSize: CGFloat = 19,
-                     messageFontSize: CGFloat = 15,
-                     buttonsHeight: CGFloat = 45,
-                     cancelButtonHeight: CGFloat = 30,
+                     titleFontSize: CGFloat = 0,
+                     messageFontSize: CGFloat = 0,
+                     buttonsHeight: CGFloat = 0,
+                     cancelButtonHeight: CGFloat = 0,
                      fontName: String = "AvenirNext-Medium",
                      boldFontName: String = "AvenirNext-DemiBold"){
         self.init(nibName: nil, bundle: nil)
@@ -376,10 +409,13 @@ open class AZDialogViewController: UIViewController{
         self.fontNameBold = boldFontName
     }
     
-    func handlePanGesture(_ sender: UIPanGestureRecognizer){
+    
+    /// Selector method - used to handle the dragging.
+    ///
+    /// - Parameter sender: The Gesture Recognizer.
+    internal func handlePanGesture(_ sender: UIPanGestureRecognizer){
         
         let translation = sender.translation(in: self.view)
-        
         baseView.center = CGPoint(x: baseView.lastLocation.x , y: baseView.lastLocation.y + translation.y)
         
         if sender.state == UIGestureRecognizerState.ended{
@@ -387,38 +423,56 @@ open class AZDialogViewController: UIViewController{
             let velocity = sender.velocity(in: view)
             let mag = sqrtf(Float(velocity.x * velocity.x) + Float(velocity.y * velocity.y))
             let slideMult = mag / 200
-            
             var finalPoint = (baseView.superview?.center)!
+            let dismissWithGesture = dismissDirection != .none ? true : false
+            
+            let returnToCenter = {
+                UIView.animate(withDuration: 0.35, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 2.0, options: [], animations: { () -> Void in
+                    self.baseView.center = finalPoint
+                }, completion: { (complete) -> Void in
+                })
+            }
+            
+            let dismissInDirection = {
+                UIView.animate(withDuration: 0.2, animations: { () -> Void in
+                    self.baseView.center = finalPoint
+                    self.view.backgroundColor = .clear
+                }, completion: { (complete) -> Void in
+                    self.dismiss(animated: false, completion: nil)
+                })
+            }
             
             if dismissWithGesture && slideMult > 1 {
                 //dismiss
                 if velocity.y > 0{
-                    
                     //dismiss downward
-                    finalPoint.y = (baseView.superview?.frame.maxY)! + (baseView.bounds.midY)
+                    if dismissDirection == .bottom || dismissDirection == .both {
+                        finalPoint.y = (baseView.superview?.frame.maxY)! + (baseView.bounds.midY)
+                        dismissInDirection()
+                    }else{
+                        returnToCenter()
+                    }
                 }else{
                     
                     //dismiss upward
-                    finalPoint.y = -(baseView.bounds.midY)
+                    if dismissDirection == .top || dismissDirection == .both {
+                        finalPoint.y = -(baseView.bounds.midY)
+                        dismissInDirection()
+                    }else{
+                        returnToCenter()
+                    }
                 }
-                
-                UIView.animate(withDuration: 0.2, animations: { () -> Void in
-                    self.baseView.center = finalPoint
-                    }, completion: { (complete) -> Void in
-                        self.dismiss(animated: false, completion: nil)
-                })
-                
             }else{
                 //return to center
-                UIView.animate(withDuration: 0.35, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 2.0, options: [], animations: { () -> Void in
-                    self.baseView.center = finalPoint
-                    }, completion: { (complete) -> Void in
-                })
+                returnToCenter()
             }
         }
     }
     
-    func handleTapGesture(_ sender: UITapGestureRecognizer){
+    /// Selector method - used to handle view touch.
+    ///
+    /// - Parameter sender: The Gesture Recognizer.
+    internal func handleTapGesture(_ sender: UITapGestureRecognizer){
         if sender.view is BaseView{
             return
         }
@@ -427,37 +481,35 @@ open class AZDialogViewController: UIViewController{
         }
     }
     
-    func cancelAction(_ sender: UIButton){
+    /// Selector method - used when cancel button is clicked.
+    ///
+    /// - Parameter sender: The cancel button.
+    internal func cancelAction(_ sender: UIButton){
         dismiss()
     }
     
-    func handleLeftTool(_ sender: UIButton){
+    /// Selector method - used when left tool item button is clicked.
+    ///
+    /// - Parameter sender: The left tool button.
+    internal func handleLeftTool(_ sender: UIButton){
         leftToolAction?(sender)
     }
     
-    func handleRightTool(_ sender: UIButton){
+    /// Selector method - used when right tool item button is clicked.
+    ///
+    /// - Parameter sender: The right tool button.
+    internal func handleRightTool(_ sender: UIButton){
         rightToolAction?(sender)
     }
     
-    func handleAction(_ sender: UIButton){
+    
+    /// Selector method - used when one of the action buttons are clicked.
+    ///
+    /// - Parameter sender: Action Button
+    internal func handleAction(_ sender: UIButton){
         (actions[sender.tag]!.handler)?(self)
     }
     
-    open func show(in controller: UIViewController){
-        controller.present(self, animated: false, completion: nil)
-    }
-    
-    open func dismiss(){
-        UIView.animate(withDuration: 0.2, animations: { () -> Void in
-            self.baseView.center.y = (self.baseView.superview?.frame.maxY)! + (self.baseView.frame.midY)
-            }, completion: { (complete) -> Void in
-                self.dismiss(animated: false, completion: nil)
-        })
-    }
-    
-    open func addAction(_ action: AZDialogAction){
-        actions.append(action)
-    }
     
     fileprivate func setup(){
         actions = [AZDialogAction?]()
@@ -478,14 +530,11 @@ open class AZDialogViewController: UIViewController{
     }
 }
 
-class BaseView: UIView{
-    
-    var lastLocation = CGPoint(x: 0, y: 0)
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        lastLocation = self.center
-        super.touchesBegan(touches, with: event)
-    }
+public enum AZDialogDismissDirection{
+    case top
+    case bottom
+    case both
+    case none
 }
 
 open class AZDialogAction{
@@ -496,5 +545,30 @@ open class AZDialogAction{
     init(title: String,handler: ActionHandler? = nil){
         self.title = title
         self.handler = handler
+    }
+}
+
+fileprivate class BaseView: UIView{
+    
+    var lastLocation = CGPoint(x: 0, y: 0)
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        lastLocation = self.center
+        super.touchesBegan(touches, with: event)
+    }
+}
+
+fileprivate class FixedNavigationController: UINavigationController{
+    
+    open override var shouldAutorotate: Bool{
+        return true
+    }
+    
+    open override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation{
+        return .portrait
+    }
+    
+    open override var supportedInterfaceOrientations: UIInterfaceOrientationMask{
+        return .portrait
     }
 }
