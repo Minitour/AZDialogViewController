@@ -2,28 +2,29 @@
 A highly customizable alert dialog controller that mimics Snapchat's alert dialog.
 
 
-##Screenshots
-|         |            |
-| :-------------: |:-------------:| 
-| <img src="Screenshots/sc_1.png" height="320" /> | <img src="Screenshots/sc_2.png" height="320" /> |
-| <img src="Screenshots/sc_3.png" height="320" /> | <img src="Screenshots/sc_4.png" height="320" /> |
+## Screenshots
+
+ <img src="Screenshots/sc_1.png" width="320" />  
+ <img src="Screenshots/sc_2.png" width="320" /> |
+ <img src="Screenshots/sc_3.png" width="320" /> 
+ <img src="Screenshots/sc_4.png" width="320" /> 
  
 
-##Usage
+## Usage
 
 Create an instance of AZDialogViewController:
 ```swift
 let dialogController = AZDialogViewController(title: "Antonio Zaitoun", message: "minitour")
 ```
 
-####Customize:
+#### Customize:
 ```swift
 dialogController.dismissDirection = .bottom
 dialogController.dismissWithOutsideTouch = true
 dialogController.showSeparator = false
 ```
 
-####Add Actions:
+#### Add Actions:
 ```swift
 dialogController.addAction(AZDialogAction(title: "Edit Name", handler: { (dialog) -> (Void) in
         //add your actions here.
@@ -41,7 +42,7 @@ dialogController.addAction(AZDialogAction(title: "Block", handler: { (dialog) ->
 }))
 ```
 
-####Add Image:
+#### Add Image:
 ```swift
 dialogController.imageHandler = { (imageView) in
        imageView.image = UIImage(named: "your_image_here")
@@ -50,7 +51,7 @@ dialogController.imageHandler = { (imageView) in
 }
 ```
 
-####Customize Action Buttons Style:
+#### Customize Action Buttons Style:
 ```swift
 dialogController.buttonStyle = { (button,height,position) in
      button.setBackgroundImage(UIImage.imageWithColor(self.primaryColorDark), for: .highlighted)
@@ -61,7 +62,7 @@ dialogController.buttonStyle = { (button,height,position) in
 }
 ```
 
-####Customize Tool Buttons:
+#### Customize Tool Buttons:
 ```swift
 dialogController.rightToolStyle = { (button) in
         button.setImage(UIImage(named: "ic_share"), for: [])
@@ -83,7 +84,7 @@ dialogController.leftToolAction = { (button) in
 
 ```
 
-####Customize Cancel Button Style:
+#### Customize Cancel Button Style:
 ```swift
 dialogController.cancelButtonStyle = { (button,height) in
         button.tintColor = self.primaryColor
@@ -92,7 +93,7 @@ dialogController.cancelButtonStyle = { (button,height) in
 }
 ```
 
-####Present The dialog:
+#### Present The dialog:
 ```swift
 dialogController.show(in: self)
 ```
