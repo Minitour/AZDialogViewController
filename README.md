@@ -9,7 +9,20 @@ A highly customizable alert dialog controller that mimics Snapchat's alert dialo
  <img src="Screenshots/sc_3.png" width="320" /> 
  <img src="Screenshots/sc_4.png" width="320" /> 
  
+ 
+## Installation
 
+
+### Cocoa Pods:
+
+```bash
+Coming Soon
+```
+
+### Manual:
+
+Simply drag and drop the ```Sources``` folder to your project.
+ 
 ## Usage
 
 Create an instance of AZDialogViewController:
