@@ -16,7 +16,7 @@ A highly customizable alert dialog controller that mimics Snapchat's alert dialo
 ### Cocoa Pods:
 
 ```bash
-Coming Soon
+pod 'AZDialogView'
 ```
 
 ### Manual:
