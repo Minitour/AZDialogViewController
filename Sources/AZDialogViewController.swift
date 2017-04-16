@@ -111,7 +111,7 @@ open class AZDialogViewController: UIViewController{
     open override func dismiss(animated: Bool = true,completion: (()->Void)?=nil){
         if animated {
             UIView.animate(withDuration: 0.2, animations: { () -> Void in
-                self.baseView.center.y = (self.baseView.superview?.frame.maxY)! + (self.baseView.frame.midY)
+                self.baseView.center.y = self.view.bounds.maxY + (self.baseView.bounds.midY)
                 self.view.backgroundColor = .clear
             }, completion: { (complete) -> Void in
                 super.dismiss(animated: false, completion: completion)
@@ -348,7 +348,7 @@ open class AZDialogViewController: UIViewController{
         super.viewDidAppear(animated)
         if !didInitAnimation{
             didInitAnimation = true
-            baseView.center.y = (baseView.superview?.frame.maxY)! + (baseView.frame.midY)
+            baseView.center.y = self.view.bounds.maxY + baseView.bounds.midY
             baseView.isHidden = false
             UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 6.0, options: [], animations: { () -> Void in
                 self.baseView.center = (self.baseView.superview?.center)!
@@ -396,6 +396,7 @@ open class AZDialogViewController: UIViewController{
                      fontName: String = "AvenirNext-Medium",
                      boldFontName: String = "AvenirNext-DemiBold"){
         self.init(nibName: nil, bundle: nil)
+        
         mTitle = title
         mMessage = message
         self.spacing = spacing
@@ -418,29 +419,36 @@ open class AZDialogViewController: UIViewController{
         let translation = sender.translation(in: self.view)
         baseView.center = CGPoint(x: baseView.lastLocation.x , y: baseView.lastLocation.y + translation.y)
         
-        if sender.state == UIGestureRecognizerState.ended{
+        let returnToCenter:(CGPoint,Bool)->Void = { (finalPoint,animate) in
+            if !animate {
+                self.baseView.center = finalPoint
+                return
+            }
+            UIView.animate(withDuration: 0.35, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 2.0, options: [], animations: { () -> Void in
+                self.baseView.center = finalPoint
+            }, completion: { (complete) -> Void in
+            })
+        }
+        
+        let dismissInDirection:(CGPoint)->Void = { (finalPoint) in
+            UIView.animate(withDuration: 0.2, animations: { () -> Void in
+                self.baseView.center = finalPoint
+                self.view.backgroundColor = .clear
+            }, completion: { (complete) -> Void in
+                self.dismiss(animated: false, completion: nil)
+            })
+        }
+        
+        var finalPoint = (baseView.superview?.center)!
+        
+        if sender.state == .ended{
             
             let velocity = sender.velocity(in: view)
             let mag = sqrtf(Float(velocity.x * velocity.x) + Float(velocity.y * velocity.y))
             let slideMult = mag / 200
-            var finalPoint = (baseView.superview?.center)!
             let dismissWithGesture = dismissDirection != .none ? true : false
             
-            let returnToCenter = {
-                UIView.animate(withDuration: 0.35, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 2.0, options: [], animations: { () -> Void in
-                    self.baseView.center = finalPoint
-                }, completion: { (complete) -> Void in
-                })
-            }
             
-            let dismissInDirection = {
-                UIView.animate(withDuration: 0.2, animations: { () -> Void in
-                    self.baseView.center = finalPoint
-                    self.view.backgroundColor = .clear
-                }, completion: { (complete) -> Void in
-                    self.dismiss(animated: false, completion: nil)
-                })
-            }
             
             if dismissWithGesture && slideMult > 1 {
                 //dismiss
@@ -448,25 +456,31 @@ open class AZDialogViewController: UIViewController{
                     //dismiss downward
                     if dismissDirection == .bottom || dismissDirection == .both {
                         finalPoint.y = (baseView.superview?.frame.maxY)! + (baseView.bounds.midY)
-                        dismissInDirection()
+                        dismissInDirection(finalPoint)
                     }else{
-                        returnToCenter()
+                        returnToCenter(finalPoint,true)
                     }
                 }else{
                     
                     //dismiss upward
                     if dismissDirection == .top || dismissDirection == .both {
                         finalPoint.y = -(baseView.bounds.midY)
-                        dismissInDirection()
+                        dismissInDirection(finalPoint)
                     }else{
-                        returnToCenter()
+                        returnToCenter(finalPoint,true)
                     }
                 }
             }else{
                 //return to center
-                returnToCenter()
+                returnToCenter(finalPoint,true)
             }
         }
+        
+        if sender.state == .cancelled || sender.state == .failed{
+            returnToCenter(finalPoint,false)
+        }
+        
+        
     }
     
     /// Selector method - used to handle view touch.

@@ -83,7 +83,7 @@ class ViewController: UIViewController {
             print("Share function")
         }
         
-        dialogController.dismissDirection = .bottom
+        dialogController.dismissDirection = .both
         
         dialogController.dismissWithOutsideTouch = true
         
@@ -91,7 +91,7 @@ class ViewController: UIViewController {
     }
     
     func editUserDialog(){
-        let dialogController = AZDialogViewController(title: "Antonio Zaitoun", message: "minitour")
+        let dialogController = AZDialogViewController(title: "This is a very long string and I am really bored. whatever mate", message: "minitour")
         dialogController.showSeparator = true
         
         dialogController.addAction(AZDialogAction(title: "Edit Name", handler: { (dialog) -> (Void) in
@@ -166,24 +166,32 @@ class ViewController: UIViewController {
     }
 
     func reportDialog(){
-        let dialogController = AZDialogViewController(title: "Report Pack", message: "Please let us know the reason you are reporting this pack.",buttonsHeight: 35)
+        let dialogController = AZDialogViewController(title: nil, message: nil)
         dialogController.dismissDirection = .bottom
         
         dialogController.dismissWithOutsideTouch = true
         
-        let primary = #colorLiteral(red: 0, green: 0.8213806748, blue: 0.4752416015, alpha: 1)
-        let primaryDark = #colorLiteral(red: 0, green: 0.7293747497, blue: 0.4250124319, alpha: 1)
+        let primary = #colorLiteral(red: 0, green: 0.6862745098, blue: 0.9411764706, alpha: 1)
+        let primaryDark = #colorLiteral(red: 0.02745098039, green: 0.368627451, blue: 0.3294117647, alpha: 1)
+        
         
         dialogController.buttonStyle = { (button,height,position) in
             button.tintColor = primary
-            button.setTitleColor(.white, for: [])
-            //button.setTitleColor(primary, for: .normal)
-            button.setBackgroundImage(UIImage.imageWithColor(primary) , for: .normal)
-            button.setBackgroundImage(UIImage.imageWithColor(primaryDark) , for: .highlighted)
             button.layer.masksToBounds = true
-            button.layer.cornerRadius = 5
-
-            button.layer.borderWidth = 0
+            button.setBackgroundImage(UIImage.imageWithColor(primary) , for: .normal)
+            button.setBackgroundImage(UIImage.imageWithColor(primaryDark), for: .highlighted)
+            button.setTitleColor(UIColor.white, for: [])
+            button.layer.masksToBounds = true
+            button.layer.borderColor = self.primaryColor.cgColor
+            button.layer.borderColor = primary.cgColor
+            
+            if position == 4 {
+                button.setTitleColor(UIColor.white, for: .highlighted)
+                button.setBackgroundImage(UIImage.imageWithColor(#colorLiteral(red: 1, green: 0.3005838394, blue: 0.2565174997, alpha: 1)), for: .highlighted)
+                button.setBackgroundImage(nil , for: .normal)
+                button.setTitleColor(#colorLiteral(red: 1, green: 0.3005838394, blue: 0.2565174997, alpha: 1), for: .normal)
+                button.layer.borderColor = #colorLiteral(red: 1, green: 0.3005838394, blue: 0.2565174997, alpha: 1).cgColor
+            }
         }
         
         dialogController.cancelButtonStyle = { (button, height) in
@@ -192,21 +200,26 @@ class ViewController: UIViewController {
             return true
         }
         
-        dialogController.addAction(AZDialogAction(title: "Not for me", handler: { (dialog) -> (Void) in
+        dialogController.addAction(AZDialogAction(title: "Mute", handler: { (dialog) -> (Void) in
             dialog.dismiss()
         }))
         
-        dialogController.addAction(AZDialogAction(title: "Spam", handler: { (dialog) -> (Void) in
+        dialogController.addAction(AZDialogAction(title: "Group Info", handler: { (dialog) -> (Void) in
             dialog.dismiss()
         }))
         
-        dialogController.addAction(AZDialogAction(title: "Offensive Content", handler: { (dialog) -> (Void) in
+        dialogController.addAction(AZDialogAction(title: "Export Chat", handler: { (dialog) -> (Void) in
+            dialog.dismiss()
+        }))
+    
+        dialogController.addAction(AZDialogAction(title: "Clear Chat", handler: { (dialog) -> (Void) in
             dialog.dismiss()
         }))
         
-        dialogController.addAction(AZDialogAction(title: "Other", handler: { (dialog) -> (Void) in
+        dialogController.addAction(AZDialogAction(title: "Exit Chat", handler: { (dialog) -> (Void) in
             dialog.dismiss()
         }))
+        
         
         dialogController.show(in: self)
     }
