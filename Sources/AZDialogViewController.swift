@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-typealias ActionHandler = ((AZDialogViewController)->(Void))
+public typealias ActionHandler = ((AZDialogViewController)->(Void))
 
 open class AZDialogViewController: UIViewController{
 
@@ -384,7 +384,7 @@ open class AZDialogViewController: UIViewController{
     ///   - cancelButtonHeight: The cancel button height.
     ///   - fontName: The font name that will be used for the message label and the buttons.
     ///   - boldFontName: The font name that will be used for the title.
-    convenience init(title: String?,
+    public convenience init(title: String?,
                      message: String?,
                      verticalSpacing spacing: CGFloat = -1,
                      buttonSpacing stackSpacing:CGFloat = 10,
@@ -552,11 +552,11 @@ public enum AZDialogDismissDirection{
 }
 
 open class AZDialogAction{
-    var title: String?
-    var isEnabled: Bool = true
-    var handler: ActionHandler?
+    open var title: String?
+    open var isEnabled: Bool = true
+    open var handler: ActionHandler?
     
-    init(title: String,handler: ActionHandler? = nil){
+    public init(title: String,handler: ActionHandler? = nil){
         self.title = title
         self.handler = handler
     }
