@@ -73,6 +73,8 @@ open class AZDialogViewController: UIViewController{
     
     open var dismissDirection: AZDialogDismissDirection = .both
     
+    open var backgroundAlpha: Float = 0.2
+    
     open private (set) var spacing: CGFloat = 0
     
     open private (set) var stackSpacing: CGFloat = 0
@@ -352,7 +354,7 @@ open class AZDialogViewController: UIViewController{
             baseView.isHidden = false
             UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 6.0, options: [], animations: { () -> Void in
                 self.baseView.center = (self.baseView.superview?.center)!
-                let backgroundColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: 0.2)
+                let backgroundColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: self.backgroundAlpha)
                 self.view.backgroundColor = backgroundColor
                 }) { (complete) -> Void in
             }
