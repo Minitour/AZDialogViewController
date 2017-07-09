@@ -29,7 +29,8 @@ class ViewController: UIViewController {
     @IBAction func click(_ sender: UIButton) {
         switch sender.tag{
         case 0:
-            ignDialog()
+            //ignDialog()
+            loadingIndicator()
         case 1:
             editUserDialog()
         case 2:
@@ -41,21 +42,84 @@ class ViewController: UIViewController {
         }
     }
     
+    func loadingIndicator(){
+        let dialog = AZDialogViewController(title: "Loading...", message: "Logging you in, please wait")
+        
+        let container = dialog.container
+        let indicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)
+        dialog.container.addSubview(indicator)
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        indicator.centerXAnchor.constraint(equalTo: container.centerXAnchor).isActive = true
+        indicator.centerYAnchor.constraint(equalTo: container.centerYAnchor).isActive = true
+        indicator.startAnimating()
+        
+        
+        dialog.buttonStyle = { (button,height,position) in
+            button.setBackgroundImage(UIImage.imageWithColor(self.primaryColorDark), for: .highlighted)
+            button.setTitleColor(UIColor.white, for: .highlighted)
+            button.setTitleColor(self.primaryColor, for: .normal)
+            button.layer.masksToBounds = true
+            button.layer.borderColor = self.primaryColor.cgColor
+        }
+        
+        dialog.customViewSizeRatio = 0.2
+        dialog.dismissDirection = .none
+        dialog.allowDragGesture = false
+        dialog.dismissWithOutsideTouch = true
+        dialog.show(in: self)
+        
+        let when = DispatchTime.now() + 3 // change 2 to desired number of seconds
+        DispatchQueue.main.asyncAfter(deadline: when) {
+            dialog.message = "Preparing..."
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 4) {
+            dialog.message = "Syncing accounts..."
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 5) {
+            dialog.title = "Ready"
+            dialog.message = "Let's get started"
+            dialog.image = #imageLiteral(resourceName: "image")
+            dialog.customViewSizeRatio = 0
+            dialog.addAction(AZDialogAction(title: "Go", handler: { (dialog) -> (Void) in
+               dialog.dismiss()
+            }))
+        }
+        
+        
+    }
+    
     func ignDialog(){
-        let dialogController = AZDialogViewController(title: "IGN",
-                                                      message: "IGN is your destination for gaming, movies, comics and everything you're into. Find the latest reviews, news, videos, and more more.")
+        let dialogController = AZDialogViewController(title: "ign", message: "some message")
         
         dialogController.showSeparator = true
         
-        dialogController.imageHandler = { (imageView) in
-            imageView.image = #imageLiteral(resourceName: "ign")
-            imageView.contentMode = .scaleAspectFill
-            return true
-        }
+//        dialogController.imageHandler = { (imageView) in
+//            imageView.image = UIImage(named: "ign")
+//            imageView.contentMode = .scaleAspectFill
+//            return true
+//        }
         
         dialogController.addAction(AZDialogAction(title: "Subscribe", handler: { (dialog) -> (Void) in
-            dialog.dismiss()
+            //dialog.title = "title"
+            //dialog.message = "new message"
+            dialog.image = dialog.image == nil ? #imageLiteral(resourceName: "ign") : nil
+            //dialog.title = ""
+            //dialog.message = ""
+            //dialog.customViewSizeRatio = 0.2
+            
+            
         }))
+        
+        let container = dialogController.container
+        let button = UIButton(type: .system)
+        button.setTitle("MY BUTTON", for: [])
+        dialogController.container.addSubview(button)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.centerXAnchor.constraint(equalTo: container.centerXAnchor).isActive = true
+        button.centerYAnchor.constraint(equalTo: container.centerYAnchor).isActive = true
+        
         
         dialogController.buttonStyle = { (button,height,position) in
             button.setBackgroundImage(UIImage.imageWithColor(self.primaryColor) , for: .normal)

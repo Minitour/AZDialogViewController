@@ -13,11 +13,7 @@ public typealias ActionHandler = ((AZDialogViewController)->(Void))
 
 open class AZDialogViewController: UIViewController{
 
-    // Title of the dialog.
-    fileprivate var mTitle: String?
-    
-    // Message of the dialog.
-    fileprivate var mMessage: String?
+    //MARK: - Private Properties
     
     // The container that holds the image view.
     fileprivate var imageViewHolder: UIView!
@@ -35,13 +31,18 @@ open class AZDialogViewController: UIViewController{
     fileprivate var cancelButton: UIButton!
     
     // The stackview that holds the buttons.
-    fileprivate var stackView: UIStackView!
+    fileprivate var buttonsStackView: UIStackView!
+    
+    //The stack that holds all the view
+    fileprivate var generalStackView: UIStackView!
     
     // The seperatorView
-    fileprivate var seperatorView: UIView!
+    fileprivate var separatorView: UIView!
     
+    //The button on the left
     fileprivate var leftToolItem: UIButton!
     
+    //The button on the right
     fileprivate var rightToolItem: UIButton!
     
     // The array which holds the actions
@@ -50,67 +51,201 @@ open class AZDialogViewController: UIViewController{
     // The primary draggable view.
     fileprivate var baseView: BaseView!
     
+    //Did finish animating
     fileprivate var didInitAnimation = false
     
-    // Show separator
+    fileprivate var imageViewHolderHeightConstraint: NSLayoutConstraint!
+    
+    fileprivate var generalStackViewTopConstraint: NSLayoutConstraint!
+    
+    fileprivate var imageViewHolderConstraint: NSLayoutConstraint!
+    
+    //The height constraint of the custom view `container`
+    fileprivate var customViewHeightAnchor: NSLayoutConstraint!{
+        willSet{
+            if customViewHeightAnchor != nil { customViewHeightAnchor.isActive = false }
+        }didSet{
+            customViewHeightAnchor.isActive = true
+        }
+    }
+    
+    // Title of the dialog.
+    fileprivate var mTitle: String?{
+        didSet{
+            if titleLabel != nil,generalStackView != nil {
+                titleLabel.text = mTitle
+                if mTitle == nil || mTitle?.characters.count == 0{
+                    titleLabel.isHidden = true
+                    separatorView.isHidden = true
+                }else{
+                    titleLabel.isHidden = false
+                    separatorView.isHidden = false
+                }
+                animateStackView()
+            }
+        }
+    }
+    
+    // Message of the dialog.
+    fileprivate var mMessage: String?{
+        didSet{
+            if messageLabel != nil,generalStackView != nil {
+                messageLabel.text = mMessage
+                if mMessage == nil || mMessage?.characters.count == 0{
+                    messageLabel.isHidden = true
+                }else{
+                    messageLabel.isHidden = false
+                }
+                animateStackView()
+            }
+        }
+    }
+    
+    // Helper to get the real device width
+    fileprivate var deviceWidth: CGFloat {
+        return view.bounds.width < view.bounds.height ? view.bounds.width : view.bounds.height
+    }
+    
+    // Helper to get the real device height
+    fileprivate var deviceHeight: CGFloat {
+        return view.bounds.width < view.bounds.height ? view.bounds.height : view.bounds.width
+    }
+    
+    //MARK: - Getters
+    
+    open fileprivate(set) var spacing: CGFloat = 0
+    
+    open fileprivate(set) var stackSpacing: CGFloat = 0
+    
+    open fileprivate(set) var sideSpacing: CGFloat = 0
+    
+    open fileprivate(set) var titleFontSize: CGFloat = 0
+    
+    open fileprivate(set) var messageFontSize: CGFloat = 0
+    
+    open fileprivate(set) var buttonHeight: CGFloat = 0
+    
+    open fileprivate(set) var cancelButtonHeight:CGFloat = 0
+    
+    open fileprivate(set) var fontName = "AvenirNext-Medium"
+    
+    open fileprivate(set) var fontNameBold = "AvenirNext-DemiBold"
+    
+    open fileprivate(set) lazy var container: UIView = UIView()
+    
+    //MARK: - Public
+    
+    /// Show separator
     open var showSeparator = true
     
+    /// Separator Color
+    open var separatorColor: UIColor = UIColor(colorLiteralRed: 208/255, green: 211/255, blue: 214/255, alpha: 1){
+        didSet{
+            separatorView?.backgroundColor = separatorColor
+        }
+    }
+    
+    /// Allow dismiss when touching outside of the dialog (touching the background)
     open var dismissWithOutsideTouch = true
     
+    /// Allow users to drag the dialog
+    open var allowDragGesture = true
+    
+    /// Button style closure, called when setting up an action. Where the 1st parameter is a reference to the button, the 2nd is the height of the button and the 3rd is the position of the button (index).
     open var buttonStyle: ((UIButton,_ height: CGFloat,_ position: Int)->Void)?
     
+    /// Left Tool Style, is the style (closure) that is called when setting up the left tool item. Make sure to return true to show the item.
     open var leftToolStyle: ((UIButton)->Bool)?
     
+    /// Right Tool Style, is the style (closure) that is called when setting up the right tool item. Make sure to return true to show the item.
     open var rightToolStyle: ((UIButton)->Bool)?
     
+    /// The action that is triggered when tool is clicked.
     open var leftToolAction: ((UIButton)->Void)?
     
+    /// The action that is triggered when tool is clicked.
     open var rightToolAction: ((UIButton)->Void)?
     
+    /// The cancel button style. where @UIButton is the refrence to the button, @CGFloat is the height of the button and @Bool is the value you return where true would show the button and false won't.
     open var cancelButtonStyle: ((UIButton,CGFloat)->Bool)?
     
+    /// Image handler, used when setting up an image using some sort of process.
     open var imageHandler: ((UIImageView)->Bool)?
     
+    /// Dismiss direction [top,bottom,both,none]
     open var dismissDirection: AZDialogDismissDirection = .both
     
+    /// Background alpha. default is 0.2
     open var backgroundAlpha: Float = 0.2
     
-    open private (set) var spacing: CGFloat = 0
+    /// Change the title of the dialog
+    open override var title: String?{
+        get{
+            return mTitle
+        }set{
+            mTitle = newValue
+        }
+    }
     
-    open private (set) var stackSpacing: CGFloat = 0
+    /// Change the message of the dialog
+    open var message: String? {
+        get{
+            return mMessage
+        }set{
+            mMessage = newValue
+        }
+    }
     
-    open private (set) var sideSpacing: CGFloat = 0
+    /// Change the height of the custom view
+    open var customViewSizeRatio: CGFloat = 0.0{
+        didSet{
+            customViewHeightAnchor =
+                container.heightAnchor
+                    .constraint(equalTo: container.widthAnchor, multiplier: customViewSizeRatio)
+            
+            let alpha: CGFloat = customViewSizeRatio > 0.0 ? 1.0 : 0.0
+            animateStackView { [weak self] in
+                self?.container.alpha = alpha
+            }
+        }
+    }
     
-    open private (set) var titleFontSize: CGFloat = 0
+    /// Change the text of the cancel button
+    open var cancelTitle: String = "CANCEL"{
+        didSet{
+            cancelButton?.setTitle(cancelTitle, for: [])
+        }
+    }
     
-    open private (set) var messageFontSize: CGFloat = 0
-    
-    open private (set) var buttonHeight: CGFloat = 0
-    
-    open private (set) var cancelButtonHeight:CGFloat = 0
-    
-    open private (set) var fontName = "AvenirNext-Medium"
-    
-    open private (set) var fontNameBold = "AvenirNext-DemiBold"
-    
+    /// Add an action button to the dialog. Make sure you add the actions before calling the .show() function.
+    ///
+    /// - Parameter action: The AZDialogAction.
+    open func addAction(_ action: AZDialogAction){
+        actions.append(action)
+        
+        if buttonsStackView != nil{
+            let button = setupButton(index: actions.count-1)
+            buttonsStackView.addArrangedSubview(button)
+            animateStackView()
+        }
+    }
     
     /// The primary fuction to present the dialog.
     ///
     /// - Parameter controller: The View controller in which you wish to present the dialog.
     open func show(in controller: UIViewController){
-        let navigationController = FixedNavigationController(rootViewController: self)
-        navigationController.isNavigationBarHidden = true
-        navigationController.modalPresentationStyle = .overFullScreen
-        navigationController.modalTransitionStyle = .crossDissolve
-        controller.present(navigationController, animated: false, completion: nil)
+        controller.present(self, animated: false, completion: nil)
     }
+    
+    
+    //MARK: - Overriding methods
     
     /// The primary function to dismiss the dialog.
     ///
     /// - Parameters:
     ///   - animated: Should it dismiss with animation? default is true.
     ///   - completion: Completion block that is called after the controller is dismiss.
-    open override func dismiss(animated: Bool = true,completion: (()->Void)?=nil){
+    override open func dismiss(animated: Bool = true,completion: (()->Void)?=nil){
         if animated {
             UIView.animate(withDuration: 0.2, animations: { () -> Void in
                 self.baseView.center.y = self.view.bounds.maxY + (self.baseView.bounds.midY)
@@ -123,215 +258,79 @@ open class AZDialogViewController: UIViewController{
         }
     }
     
-    
-    /// Add an action button to the dialog. Make sure you add the actions before calling the .show() function.
-    ///
-    /// - Parameter action: The AZDialogAction.
-    open func addAction(_ action: AZDialogAction){
-        actions.append(action)
-    }
-    
     override open func loadView() {
         super.loadView()
         
         baseView = BaseView()
+        generalStackView = UIStackView()
         imageViewHolder = UIView()
+        imageViewHolder.backgroundColor = .white
         imageView = UIImageView()
-        stackView = UIStackView()
+        buttonsStackView = UIStackView()
         titleLabel = UILabel()
         messageLabel = UILabel()
         cancelButton = UIButton(type: .system)
-        seperatorView = UIView()
+        separatorView = UIView()
         leftToolItem = UIButton(type: .system)
         rightToolItem = UIButton(type: .system)
         
-        if spacing == -1 {spacing = self.view.bounds.height * 0.012}
-        if stackSpacing == -1 {stackSpacing = self.view.bounds.height * 0.015}
-        let margins = self.view!
-        let side = margins.bounds.size.width / 8
-        let labelWidth = margins.bounds.width - side * 2 - sideSpacing
+        if spacing == -1 {spacing = deviceHeight * 0.012}
         let showImage = imageHandler?(imageView) ?? false
-        let imagePadding:CGFloat = 5
-        let separatorColor = UIColor(colorLiteralRed: 208/255, green: 211/255, blue: 214/255, alpha: 1)
         
         // Disable translate auto resizing mask into constraints
-        
         baseView.translatesAutoresizingMaskIntoConstraints = false
+        generalStackView.translatesAutoresizingMaskIntoConstraints = false
         imageViewHolder.translatesAutoresizingMaskIntoConstraints = false
         imageView.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
-        seperatorView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.translatesAutoresizingMaskIntoConstraints = false
+        separatorView.translatesAutoresizingMaskIntoConstraints = false
+        buttonsStackView.translatesAutoresizingMaskIntoConstraints = false
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         leftToolItem.translatesAutoresizingMaskIntoConstraints = false
         rightToolItem.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(baseView)
+        baseView.addSubview(generalStackView)
         baseView.addSubview(imageViewHolder)
-        baseView.addSubview(titleLabel)
-        baseView.addSubview(seperatorView)
-        baseView.addSubview(messageLabel)
-        baseView.addSubview(stackView)
         baseView.addSubview(cancelButton)
+        generalStackView.addArrangedSubview(titleLabel)
+        generalStackView.addArrangedSubview(separatorView)
+        generalStackView.addArrangedSubview(messageLabel)
+        generalStackView.addArrangedSubview(container)
+        generalStackView.addArrangedSubview(buttonsStackView)
         imageViewHolder.addSubview(imageView)
         
-        // Setup Image View
         
-        let imageHolderSize: CGFloat = showImage ? CGFloat(Int((margins.bounds.width - 2 * side) / 3))  : 0
-        let imageMultiplier:CGFloat = showImage ? 0.0 : 1.0
-        imageViewHolder.layer.cornerRadius = imageHolderSize / 2
-        imageViewHolder.layer.masksToBounds = true
-        imageViewHolder.backgroundColor = UIColor.white
-        imageViewHolder.topAnchor.constraint(equalTo: baseView.topAnchor, constant: -imageHolderSize/3).isActive = true
-        imageViewHolder.centerXAnchor.constraint(equalTo: baseView.centerXAnchor, constant: 0).isActive = true
-        imageViewHolder.heightAnchor.constraint(equalToConstant: imageHolderSize).isActive = true
-        imageViewHolder.widthAnchor.constraint(equalToConstant: imageHolderSize).isActive = true
+        //setup image
+        let imageMultiplier = setupImage(showImage: showImage)
         
-        if showImage {
-            imageView.layer.cornerRadius = (imageHolderSize - 2 * imagePadding) / 2
-            imageView.layer.masksToBounds = true
-            imageView.topAnchor.constraint(equalTo: imageViewHolder.topAnchor, constant: imagePadding).isActive = true
-            imageView.rightAnchor.constraint(equalTo: imageViewHolder.rightAnchor, constant: -imagePadding).isActive = true
-            imageView.leftAnchor.constraint(equalTo: imageViewHolder.leftAnchor, constant: imagePadding).isActive = true
-            imageView.bottomAnchor.constraint(equalTo: imageViewHolder.bottomAnchor, constant: -imagePadding).isActive = true
-        }
+        //Setup general stack view
+        setupGeneralStackView(imageMultiplier: imageMultiplier)
         
-        if titleFontSize == 0 {titleFontSize = self.view.bounds.height * 0.0269}
         // Setup Title Label
-        let titleFont = UIFont(name: fontNameBold, size: titleFontSize)
-        let titleHeight:CGFloat = mTitle == nil ? 0 : heightForView(mTitle!, font: titleFont!, width: labelWidth)
-        titleLabel.numberOfLines = 0
-        titleLabel.lineBreakMode = NSLineBreakMode.byWordWrapping
-        titleLabel.text = mTitle
-        titleLabel.font = titleFont
-        titleLabel.textAlignment = .center
-        titleLabel.topAnchor.constraint(equalTo: imageViewHolder.bottomAnchor, constant: spacing + spacing * imageMultiplier).isActive = true
-        titleLabel.centerXAnchor.constraint(equalTo: baseView.centerXAnchor).isActive = true
-        titleLabel.heightAnchor.constraint(equalToConstant: titleHeight).isActive = true
-        titleLabel.widthAnchor.constraint(lessThanOrEqualTo: messageLabel.widthAnchor, multiplier: 1.0).isActive = true
+        setupTitleLabel()
         
         // Setup Seperator Line
-    
-        let seperatorHeight: CGFloat = self.showSeparator ? 0.7 : 0.0
-        let seperatorMultiplier: CGFloat = seperatorHeight > 0 ? 1.0 : 0.0
-        seperatorView.backgroundColor = separatorColor
-        seperatorView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor,constant: spacing * seperatorMultiplier).isActive = true
-        seperatorView.widthAnchor.constraint(equalTo: titleLabel.widthAnchor, multiplier: 1.0).isActive = true
-        seperatorView.centerXAnchor.constraint(equalTo: baseView.centerXAnchor).isActive = true
-        seperatorView.heightAnchor.constraint(equalToConstant: seperatorHeight).isActive = true
+        setupSeparator()
         
         // Setup Message Label
-        
-        if messageFontSize == 0 {messageFontSize = self.view.bounds.height * 0.0239}
-        let labelFont = UIFont(name: fontName, size: messageFontSize)!
-        let messageLableHeight:CGFloat = mMessage == nil ? 0 : heightForView(mMessage!, font: labelFont, width: labelWidth)
-        let messageLabelMultiplier: CGFloat = messageLableHeight > 0 ? 1.0 : 0.0
-        messageLabel.numberOfLines = 0
-        messageLabel.lineBreakMode = NSLineBreakMode.byWordWrapping
-        messageLabel.font = labelFont
-        messageLabel.text = mMessage
-        messageLabel.textAlignment = .center
-        messageLabel.topAnchor.constraint(equalTo: seperatorView.bottomAnchor, constant: spacing * messageLabelMultiplier).isActive = true
-        messageLabel.rightAnchor.constraint(equalTo: baseView.rightAnchor,constant: -sideSpacing/2).isActive = true
-        messageLabel.leftAnchor.constraint(equalTo: baseView.leftAnchor,constant: sideSpacing/2).isActive = true
-        messageLabel.heightAnchor.constraint(equalToConstant: messageLableHeight).isActive = true
+        setupMessageLabel()
+
+        //Setup Custom View
+        setupContainer()
         
         // Setup Buttons (StackView)
-        if buttonHeight == 0 {buttonHeight = CGFloat(Int(self.view.bounds.height * 0.07))}
-        let stackViewSize: Int = self.actions.count * Int(buttonHeight) + (self.actions.count-1) * Int(stackSpacing)
-        let stackMultiplier:CGFloat = stackViewSize > 0 ? 1.0 : 0.0
-        stackView.distribution = .fillEqually
-        stackView.alignment = .fill
-        stackView.axis = .vertical
-        stackView.spacing = stackSpacing
-        stackView.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: spacing * 2 * stackMultiplier).isActive = true
-        stackView.rightAnchor.constraint(equalTo: baseView.rightAnchor,constant: -side).isActive = true
-        stackView.leftAnchor.constraint(equalTo: baseView.leftAnchor,constant: side).isActive = true
-        
-        for i in 0 ..< actions.count{
-            let button = UIButton(type: .custom)
-            let action = actions[i]
-            button.isExclusiveTouch = true
-            button.setTitle(action?.title, for: [])
-            button.setTitleColor(button.tintColor, for: [])
-            button.layer.borderColor = button.tintColor.cgColor
-            button.layer.borderWidth = 1
-            button.layer.cornerRadius = buttonHeight/2
-            button.titleLabel?.font = UIFont(name: fontName, size: buttonHeight * 0.35)
-            self.buttonStyle?(button,buttonHeight,i)
-            button.tag = i
-            button.addTarget(self, action: #selector(AZDialogViewController.handleAction(_:)), for: .touchUpInside)
-            stackView.addArrangedSubview(button)
-        }
-        
+        setupButtonsStack()
         
         // Setup Cancel button
-        if cancelButtonHeight == 0 {cancelButtonHeight = self.view.bounds.height * 0.0449}
-        cancelButton.setTitle("CANCEL", for: [])
-        cancelButton.titleLabel?.font = UIFont(name: fontName, size: cancelButtonHeight * 0.433)
-        let showCancelButton = cancelButtonStyle?(cancelButton,cancelButtonHeight) ?? false
-        let cancelMultiplier: CGFloat = showCancelButton ? 1.0 : 0.0
-        cancelButton.isHidden = (showCancelButton ? cancelButtonHeight : 0) <= 0
-        cancelButton.topAnchor.constraint(equalTo: stackView.bottomAnchor,constant: spacing).isActive = true
-        cancelButton.rightAnchor.constraint(equalTo: baseView.rightAnchor,constant: -side/2).isActive = true
-        cancelButton.leftAnchor.constraint(equalTo: baseView.leftAnchor,constant: side/2).isActive = true
-        cancelButton.bottomAnchor.constraint(equalTo: baseView.bottomAnchor,constant: -spacing).isActive = true
-        cancelButton.heightAnchor.constraint(equalToConstant: cancelButtonHeight  * cancelMultiplier).isActive = true
-        cancelButton.addTarget(self, action: #selector(AZDialogViewController.cancelAction(_:)), for: .touchUpInside)
+        setupCancelButton()
         
         // Setup Base View
-        
-        // Elaboration on spacingCalc:
-        //
-        //      3 * spacing : The space between titleLabel and baseView + space between stackView and cancelButton + space between baseView and cancelButton.
-        //      spacing * (seperatorMultiplier + messageLabelMultiplier + 2 * stackMultiplier) : This ranges from 0 to 4.
-        //      seperatorMultiplier: 0 if the seperator has no height, thus it will not have spacing.
-        //      messageLabelMultiplier: 0 if the messageLabel is empty and has no text which means it has no height thus it has no spacing.
-        //      2 * stackMultiplier: 0 if the stack has no buttons. 2 if the stack has atleast 1 button. There is a 2 because the spacing between the stack and other views is 2 * spacing.
-        //
-        // This gives us a total of 7 if all views are present, or 3 which is the minimum.
-        let spacingCalc = 3 * spacing + spacing * (imageMultiplier + seperatorMultiplier + messageLabelMultiplier + 2 * stackMultiplier)
-        
-        // The baseViewHeight: 
-        //                     Total Space Between Views
-        //                   + Image Holder half height
-        //                   + Title Height 
-        //                   + Seperator Height 
-        //                   + Message Label Height 
-        //                   + Stack View Height
-        //                   + Cancel Button Height.
-        let baseViewHeight =
-              Int(spacingCalc)
-            + Int(2 * imageHolderSize/3)
-            + Int(titleHeight)
-            + Int(seperatorHeight)
-            + Int(messageLableHeight)
-            + Int(stackViewSize)
-            + Int(cancelButtonHeight * cancelMultiplier)
-        
-        self.baseView.isExclusiveTouch = true
-        self.baseView.trailingAnchor.constraint(equalTo: margins.trailingAnchor, constant: -side).isActive = true
-        self.baseView.leadingAnchor.constraint(equalTo: margins.leadingAnchor, constant: side).isActive = true
-        self.baseView.centerYAnchor.constraint(equalTo: (baseView.superview?.centerYAnchor)!,constant: 0).isActive = true
-        self.baseView.heightAnchor.constraint(equalToConstant: CGFloat(baseViewHeight)).isActive = true
-        
-        if leftToolStyle?(leftToolItem) ?? false{
-            baseView.addSubview(leftToolItem)
-            leftToolItem.topAnchor.constraint(equalTo: baseView.topAnchor, constant: spacing*2).isActive = true
-            leftToolItem.leftAnchor.constraint(equalTo: baseView.leftAnchor,constant: spacing*2).isActive = true
-            leftToolItem.widthAnchor.constraint(equalTo: leftToolItem.heightAnchor).isActive = true
-            leftToolItem.addTarget(self, action: #selector(AZDialogViewController.handleLeftTool(_:)), for: .touchUpInside)
-        }
-        
-        if rightToolStyle?(rightToolItem) ?? false{
-            baseView.addSubview(rightToolItem)
-            rightToolItem.topAnchor.constraint(equalTo: baseView.topAnchor, constant: spacing*2).isActive = true
-            rightToolItem.rightAnchor.constraint(equalTo: baseView.rightAnchor,constant: -spacing*2).isActive = true
-            rightToolItem.widthAnchor.constraint(equalTo: rightToolItem.heightAnchor).isActive = true
-            rightToolItem.heightAnchor.constraint(equalToConstant: 20).isActive = true
-            rightToolItem.addTarget(self, action: #selector(AZDialogViewController.handleRightTool(_:)), for: .touchUpInside)
-        }
+        setupBaseView()
+
+        // Setup Tool Items
+        setupToolItems()
         
     }
     
@@ -353,7 +352,7 @@ open class AZDialogViewController: UIViewController{
             baseView.center.y = self.view.bounds.maxY + baseView.bounds.midY
             baseView.isHidden = false
             UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 6.0, options: [], animations: { () -> Void in
-                self.baseView.center = (self.baseView.superview?.center)!
+                self.baseView.center = self.view.center
                 let backgroundColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: self.backgroundAlpha)
                 self.view.backgroundColor = backgroundColor
                 }) { (complete) -> Void in
@@ -386,8 +385,8 @@ open class AZDialogViewController: UIViewController{
     ///   - cancelButtonHeight: The cancel button height.
     ///   - fontName: The font name that will be used for the message label and the buttons.
     ///   - boldFontName: The font name that will be used for the title.
-    public convenience init(title: String?,
-                     message: String?,
+    public convenience init(title: String?=nil,
+                     message: String?=nil,
                      verticalSpacing spacing: CGFloat = -1,
                      buttonSpacing stackSpacing:CGFloat = 10,
                      sideSpacing: CGFloat = 20,
@@ -418,6 +417,10 @@ open class AZDialogViewController: UIViewController{
     /// - Parameter sender: The Gesture Recognizer.
     internal func handlePanGesture(_ sender: UIPanGestureRecognizer){
         
+        if !allowDragGesture{
+            return
+        }
+        
         let translation = sender.translation(in: self.view)
         baseView.center = CGPoint(x: baseView.lastLocation.x , y: baseView.lastLocation.y + translation.y)
         
@@ -441,7 +444,7 @@ open class AZDialogViewController: UIViewController{
             })
         }
         
-        var finalPoint = (baseView.superview?.center)!
+        var finalPoint = view.center
         
         if sender.state == .ended{
             
@@ -457,7 +460,7 @@ open class AZDialogViewController: UIViewController{
                 if velocity.y > 0{
                     //dismiss downward
                     if dismissDirection == .bottom || dismissDirection == .both {
-                        finalPoint.y = (baseView.superview?.frame.maxY)! + (baseView.bounds.midY)
+                        finalPoint.y = view.frame.maxY + (baseView.bounds.midY)
                         dismissInDirection(finalPoint)
                     }else{
                         returnToCenter(finalPoint,true)
@@ -517,8 +520,7 @@ open class AZDialogViewController: UIViewController{
     internal func handleRightTool(_ sender: UIButton){
         rightToolAction?(sender)
     }
-    
-    
+
     /// Selector method - used when one of the action buttons are clicked.
     ///
     /// - Parameter sender: Action Button
@@ -526,23 +528,279 @@ open class AZDialogViewController: UIViewController{
         (actions[sender.tag]!.handler)?(self)
     }
     
-    
     fileprivate func setup(){
         actions = [AZDialogAction?]()
         self.modalPresentationStyle = .overCurrentContext
         self.modalTransitionStyle = .crossDissolve
     }
     
-    fileprivate func heightForView(_ text:String, font:UIFont, width:CGFloat) -> CGFloat{
-        let label:UILabel = UILabel(frame: CGRect(x: 0, y: 0, width: width, height: CGFloat.greatestFiniteMagnitude))
-        label.numberOfLines = 0
-        label.lineBreakMode = NSLineBreakMode.byWordWrapping
-        label.font = font
-        label.text = text
-        label.textAlignment = .center
+    // Helper function to change the dialog using an animation
+    fileprivate func animateStackView(completionBlock:(()->Void)?=nil,withOptionalAnimations animations: (()->Void)?=nil){
+        UIView.animate(withDuration: 0.2, animations: { [weak self] in
+            animations?()
+            self?.generalStackView?.setNeedsLayout()
+            self?.generalStackView?.layoutIfNeeded()
+            self?.baseView?.setNeedsLayout()
+            self?.baseView?.layoutIfNeeded()
+        }) { (bool) in
+            completionBlock?()
+        }
+    }
+    
+    /// Setup Image View
+    fileprivate func setupImage(showImage: Bool)->CGFloat{
+        let imageHolderSize: CGFloat = showImage ? CGFloat(Int((deviceWidth - 2 * deviceWidth / 8) / 3))  : 0
+        let imageMultiplier:CGFloat = showImage ? 0.0 : 1.0
+        imageViewHolder.layer.cornerRadius = imageHolderSize / 2
+        imageViewHolder.layer.masksToBounds = true
+        imageViewHolder.backgroundColor = UIColor.white
         
-        label.sizeToFit()
-        return label.frame.height
+        imageViewHolder.centerXAnchor.constraint(equalTo: baseView.centerXAnchor, constant: 0).isActive = true
+        
+        imageViewHolder.widthAnchor.constraint(equalTo: imageViewHolder.heightAnchor).isActive = true
+        
+        imageViewHolderConstraint = imageViewHolder.topAnchor.constraint(equalTo: baseView.topAnchor, constant: -imageHolderSize/3)
+        imageViewHolderConstraint.isActive = true
+        
+        imageViewHolderHeightConstraint = imageViewHolder.heightAnchor.constraint(equalToConstant: imageHolderSize)
+        imageViewHolderHeightConstraint.isActive = true
+
+        imageView.layer.cornerRadius = (imageHolderSize - 2 * 5) / 2
+        imageView.layer.masksToBounds = true
+        imageView.topAnchor.constraint(equalTo: imageViewHolder.topAnchor, constant: 5).isActive = true
+        imageView.rightAnchor.constraint(equalTo: imageViewHolder.rightAnchor, constant: -5).isActive = true
+        imageView.leftAnchor.constraint(equalTo: imageViewHolder.leftAnchor, constant: 5).isActive = true
+        imageView.bottomAnchor.constraint(equalTo: imageViewHolder.bottomAnchor, constant: -5).isActive = true
+        
+        return imageMultiplier
+    }
+    
+    /// Setup general stack view
+    fileprivate func setupGeneralStackView(imageMultiplier: CGFloat){
+        generalStackView.distribution = .fill
+        generalStackView.alignment = .center
+        generalStackView.axis = .vertical
+        generalStackView.spacing = stackSpacing
+        
+        generalStackView.centerXAnchor.constraint(equalTo: baseView.centerXAnchor).isActive = true
+        generalStackView.leftAnchor.constraint(equalTo: baseView.leftAnchor,constant: sideSpacing/2).isActive = true
+        generalStackView.rightAnchor.constraint(equalTo: baseView.rightAnchor,constant: -sideSpacing/2).isActive = true
+        
+        generalStackViewTopConstraint =
+            generalStackView.topAnchor.constraint(equalTo: imageViewHolder.bottomAnchor, constant: spacing + spacing * imageMultiplier)
+        print("Spacing is: \(spacing)")
+        print(spacing + spacing * imageMultiplier)
+        generalStackViewTopConstraint.isActive = true
+    }
+    
+    var image: UIImage?{
+        get{
+            return imageView?.image
+        }set{
+            if let image = newValue{
+                //not nil
+                if let _ = imageView.image {
+                    // old value not nil
+                    //new value not nil
+                    //only update the image
+                    imageView?.image = image
+                }else {
+                    //old nil
+                    //new value not nil
+                    //update image and constraints
+                    imageView?.image = image
+                    updateConstraints(showImage: true)
+                }
+            }else{
+                //nil
+                if let _ = imageView.image {
+                    //old value not nil
+                    updateConstraints(showImage: false){ [weak self] in
+                        self?.imageView.image = nil
+                    }
+                    
+                }
+            }
+            
+            
+        }
+    }
+    
+    func updateConstraints(showImage: Bool,completion: (()->Void)?=nil){
+        if generalStackViewTopConstraint == nil || imageViewHolderConstraint == nil || imageViewHolderHeightConstraint == nil{
+            return
+        }
+        
+        //remove existing constraint
+        generalStackViewTopConstraint.isActive = false
+        imageViewHolderConstraint.isActive = false
+        imageViewHolderHeightConstraint.isActive = false
+        
+        
+        //update constraints
+        let imageHolderSize: CGFloat = CGFloat(Int((deviceWidth - 2 * deviceWidth / 8) / 3))
+        let constant = showImage ? imageHolderSize : 0.0
+        
+        generalStackViewTopConstraint =
+            generalStackView
+                .topAnchor.constraint(equalTo: imageViewHolder.bottomAnchor, constant: spacing + spacing * (showImage ? 0.0 : 1.0))
+
+        print(spacing + spacing * (showImage ? 1.0 : 0.0))
+        generalStackViewTopConstraint.isActive = true
+        
+        imageViewHolderConstraint =
+            imageViewHolder.topAnchor.constraint(equalTo: baseView.topAnchor, constant: -constant/3)
+        imageViewHolderConstraint.isActive = true
+        
+        imageViewHolderHeightConstraint = imageViewHolder.heightAnchor.constraint(equalToConstant: constant)
+        imageViewHolderHeightConstraint.isActive = true
+        
+        imageViewHolder.layer.cornerRadius = imageHolderSize / 2
+        imageViewHolder.layer.masksToBounds = true
+        
+        imageView.layer.cornerRadius = (imageHolderSize - 2 * 5) / 2
+        imageView.layer.masksToBounds = true
+        
+        let transform = showImage ? CGAffineTransform(scaleX: 0, y: 0) : .identity
+        imageViewHolder.transform = transform
+        imageView.transform = transform
+        
+        
+        animateStackView(completionBlock: { [weak self] in
+            if !showImage{
+                self?.imageView.image = nil
+            }
+        }){ [weak self] in
+            
+            self?.imageViewHolder.alpha = showImage ? 1.0 : 0.0
+            let inverseTransform = showImage ? .identity : CGAffineTransform(scaleX: 0.1, y: 0.1)
+            self?.imageViewHolder.transform = inverseTransform
+            self?.imageView.transform = inverseTransform
+        }
+        
+    }
+    
+    /// Setup Title Label
+    fileprivate func setupTitleLabel(){
+        
+        if titleFontSize == 0 {titleFontSize = deviceHeight * 0.0269}
+        let titleFont = UIFont(name: fontNameBold, size: titleFontSize)
+        //let titleHeight:CGFloat = mTitle == nil ? 0 : heightForView(mTitle!, font: titleFont!, width: deviceWidth * 0.6)
+        titleLabel.numberOfLines = 0
+        titleLabel.lineBreakMode = NSLineBreakMode.byWordWrapping
+        titleLabel.text = mTitle
+        titleLabel.font = titleFont
+        titleLabel.textAlignment = .center
+        titleLabel.widthAnchor.constraint(lessThanOrEqualTo: messageLabel.widthAnchor, multiplier: 1.0).isActive = true
+        //titleLabel.heightAnchor.constraint(lessThanOrEqualToConstant: titleHeight).isActive = true
+    }
+    
+    /// Setup Seperator Line
+    fileprivate func setupSeparator(){
+        let seperatorHeight: CGFloat = self.showSeparator ? 0.7 : 0.0
+        //TODO: make the color a customizable var
+        separatorView.backgroundColor = separatorColor
+        separatorView.widthAnchor.constraint(equalTo: titleLabel.widthAnchor, multiplier: 1.0).isActive = true
+        separatorView.heightAnchor.constraint(equalToConstant: seperatorHeight).isActive = true
+    }
+    
+    /// Setup Message Label
+    fileprivate func setupMessageLabel(){
+        if messageFontSize == 0 {messageFontSize = deviceHeight * 0.0239}
+        let labelFont = UIFont(name: fontName, size: messageFontSize)!
+        messageLabel.numberOfLines = 0
+        messageLabel.lineBreakMode = NSLineBreakMode.byWordWrapping
+        messageLabel.font = labelFont
+        messageLabel.text = mMessage
+        messageLabel.textAlignment = .center
+    }
+    
+    /// Setup Custom View
+    fileprivate func setupContainer(){
+        container.alpha = customViewSizeRatio > 0 ? 1.0 : 0.0
+        container.widthAnchor.constraint(equalTo: generalStackView.widthAnchor, multiplier: 1.0).isActive = true
+        customViewHeightAnchor = container.heightAnchor.constraint(equalTo: container.widthAnchor, multiplier: customViewSizeRatio)
+    }
+    
+    /// Setup Buttons (StackView)
+    fileprivate func setupButtonsStack(){
+        
+        //let stackViewSize: Int = self.actions.count * Int(buttonHeight) + (self.actions.count-1) * Int(stackSpacing)
+        
+        buttonsStackView.distribution = .fillEqually
+        buttonsStackView.alignment = .fill
+        buttonsStackView.axis = .vertical
+        buttonsStackView.spacing = stackSpacing
+        //buttonsStackView.heightAnchor.constraint(equalToConstant: CGFloat(stackViewSize)).isActive = true
+        buttonsStackView.widthAnchor.constraint(equalTo: generalStackView.widthAnchor, multiplier: 0.8).isActive = true
+        
+        for i in 0 ..< actions.count{
+            let button = setupButton(index: i)
+            buttonsStackView.addArrangedSubview(button)
+        }
+    }
+    
+    fileprivate func setupButton(index i:Int)->UIButton{
+        if buttonHeight == 0 {buttonHeight = CGFloat(Int(deviceHeight * 0.07))}
+        let button = UIButton(type: .custom)
+        let action = actions[i]
+        button.isExclusiveTouch = true
+        button.setTitle(action?.title, for: [])
+        button.setTitleColor(button.tintColor, for: [])
+        button.layer.borderColor = button.tintColor.cgColor
+        button.layer.borderWidth = 1
+        button.layer.cornerRadius = buttonHeight/2
+        button.titleLabel?.font = UIFont(name: fontName, size: buttonHeight * 0.35)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
+        self.buttonStyle?(button,buttonHeight,i)
+        button.tag = i
+        button.addTarget(self, action: #selector(AZDialogViewController.handleAction(_:)), for: .touchUpInside)
+        return button
+    }
+    
+    /// Setup Cancel Button
+    fileprivate func setupCancelButton(){
+        if cancelButtonHeight == 0 {cancelButtonHeight = deviceHeight * 0.0449}
+        cancelButton.setTitle(cancelTitle, for: [])
+        cancelButton.titleLabel?.font = UIFont(name: fontName, size: cancelButtonHeight * 0.433)
+        let showCancelButton = cancelButtonStyle?(cancelButton,cancelButtonHeight) ?? false
+        let cancelMultiplier: CGFloat = showCancelButton ? 1.0 : 0.0
+        cancelButton.isHidden = (showCancelButton ? cancelButtonHeight : 0) <= 0
+        cancelButton.topAnchor.constraint(equalTo: generalStackView.bottomAnchor,constant: spacing).isActive = true
+        cancelButton.centerXAnchor.constraint(equalTo: baseView.centerXAnchor).isActive = true
+        cancelButton.bottomAnchor.constraint(equalTo: baseView.bottomAnchor,constant: -spacing).isActive = true
+        cancelButton.heightAnchor.constraint(equalToConstant: cancelButtonHeight  * cancelMultiplier).isActive = true
+        cancelButton.addTarget(self, action: #selector(AZDialogViewController.cancelAction(_:)), for: .touchUpInside)
+    }
+    
+    /// Setup BaseView
+    fileprivate func setupBaseView(){
+        self.baseView.isExclusiveTouch = true
+        baseView.widthAnchor.constraint(equalToConstant: deviceWidth * 0.7).isActive = true
+        baseView.centerYAnchor.constraint(equalTo: view.centerYAnchor,constant: 0).isActive = true
+        baseView.centerXAnchor.constraint(equalTo: view.centerXAnchor,constant: 0).isActive = true
+        //baseView.heightAnchor.constraint(greaterThanOrEqualToConstant: deviceWidth * 0.5).isActive = true
+    }
+    
+    // Setup Tool Items
+    fileprivate func setupToolItems(){
+        if leftToolStyle?(leftToolItem) ?? false{
+            baseView.addSubview(leftToolItem)
+            leftToolItem.topAnchor.constraint(equalTo: baseView.topAnchor, constant: spacing*2).isActive = true
+            leftToolItem.leftAnchor.constraint(equalTo: baseView.leftAnchor,constant: spacing*2).isActive = true
+            leftToolItem.widthAnchor.constraint(equalTo: leftToolItem.heightAnchor).isActive = true
+            leftToolItem.addTarget(self, action: #selector(AZDialogViewController.handleLeftTool(_:)), for: .touchUpInside)
+        }
+        
+        if rightToolStyle?(rightToolItem) ?? false{
+            baseView.addSubview(rightToolItem)
+            rightToolItem.topAnchor.constraint(equalTo: baseView.topAnchor, constant: spacing*2).isActive = true
+            rightToolItem.rightAnchor.constraint(equalTo: baseView.rightAnchor,constant: -spacing*2).isActive = true
+            rightToolItem.widthAnchor.constraint(equalTo: rightToolItem.heightAnchor).isActive = true
+            rightToolItem.heightAnchor.constraint(equalToConstant: 20).isActive = true
+            rightToolItem.addTarget(self, action: #selector(AZDialogViewController.handleRightTool(_:)), for: .touchUpInside)
+        }
     }
 }
 
@@ -564,6 +822,7 @@ open class AZDialogAction{
     }
 }
 
+
 fileprivate class BaseView: UIView{
     
     var lastLocation = CGPoint(x: 0, y: 0)
@@ -574,17 +833,3 @@ fileprivate class BaseView: UIView{
     }
 }
 
-fileprivate class FixedNavigationController: UINavigationController{
-    
-    open override var shouldAutorotate: Bool{
-        return true
-    }
-    
-    open override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation{
-        return .portrait
-    }
-    
-    open override var supportedInterfaceOrientations: UIInterfaceOrientationMask{
-        return .portrait
-    }
-}
