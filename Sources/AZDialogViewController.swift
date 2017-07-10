@@ -6,7 +6,6 @@
 //  Copyright © 2017 Crofis. All rights reserved.
 //
 
-import Foundation
 import UIKit
 
 public typealias ActionHandler = ((AZDialogViewController)->(Void))
@@ -15,51 +14,55 @@ open class AZDialogViewController: UIViewController{
 
     //MARK: - Private Properties
     
-    // The container that holds the image view.
+    /// The container that holds the image view.
     fileprivate var imageViewHolder: UIView!
     
-    // The image view.
+    /// The image view.
     fileprivate var imageView: UIImageView!
     
-    // The Title Label.
+    /// The Title Label.
     fileprivate var titleLabel: UILabel!
     
-    // The message label.
+    /// The message label.
     fileprivate var messageLabel: UILabel!
     
-    // The cancel button.
+    /// The cancel button.
     fileprivate var cancelButton: UIButton!
     
-    // The stackview that holds the buttons.
+    /// The stackview that holds the buttons.
     fileprivate var buttonsStackView: UIStackView!
     
-    //The stack that holds all the view
+    /// The stack that holds all the view
     fileprivate var generalStackView: UIStackView!
     
-    // The seperatorView
+    /// The seperatorView
     fileprivate var separatorView: UIView!
     
-    //The button on the left
+    /// The button on the left
     fileprivate var leftToolItem: UIButton!
     
-    //The button on the right
+    /// The button on the right
     fileprivate var rightToolItem: UIButton!
     
-    // The array which holds the actions
+    /// The array which holds the actions
     fileprivate var actions: [AZDialogAction?]!
     
-    // The primary draggable view.
+    /// The primary draggable view.
     fileprivate var baseView: BaseView!
     
-    //Did finish animating
+    /// Did finish animating
     fileprivate var didInitAnimation = false
     
-    fileprivate var imageViewHolderHeightConstraint: NSLayoutConstraint!
-    
-    fileprivate var generalStackViewTopConstraint: NSLayoutConstraint!
-    
+    /// The view holder's top anchor constraint
     fileprivate var imageViewHolderConstraint: NSLayoutConstraint!
     
+    /// The image view holder's height constraint
+    fileprivate var imageViewHolderHeightConstraint: NSLayoutConstraint!
+    
+    /// The general stack view top constraint
+    fileprivate var generalStackViewTopConstraint: NSLayoutConstraint!
+    
+    /// The cancel button constraint
     fileprivate var cancelButtonHeightConstraint: NSLayoutConstraint!{
         willSet{
             if cancelButtonHeightConstraint != nil { cancelButtonHeightConstraint.isActive = false }
@@ -121,23 +124,23 @@ open class AZDialogViewController: UIViewController{
     
     //MARK: - Getters
     
-    open fileprivate(set) var spacing: CGFloat = 0
+    open fileprivate(set) var spacing: CGFloat = -1
     
     open fileprivate(set) var stackSpacing: CGFloat = 0
     
-    open fileprivate(set) var sideSpacing: CGFloat = 0
-    
-    open fileprivate(set) var titleFontSize: CGFloat = 0
-    
-    open fileprivate(set) var messageFontSize: CGFloat = 0
+    open fileprivate(set) var sideSpacing: CGFloat = 20.0
     
     open fileprivate(set) var buttonHeight: CGFloat = 0
     
     open fileprivate(set) var cancelButtonHeight:CGFloat = 0
     
-    open fileprivate(set) var fontName = "AvenirNext-Medium"
+    open fileprivate(set) var titleFontSize: CGFloat = 0
     
-    open fileprivate(set) var fontNameBold = "AvenirNext-DemiBold"
+    open fileprivate(set) var messageFontSize: CGFloat = 0
+    
+    open fileprivate(set) var fontName: String = "AvenirNext-Medium"
+    
+    open fileprivate(set) var fontNameBold: String = "AvenirNext-DemiBold"
     
     open fileprivate(set) lazy var container: UIView = UIView()
     
@@ -230,20 +233,29 @@ open class AZDialogViewController: UIViewController{
     /// Use this to hide/show the cancel button
     open var cancelEnabled: Bool = false{
         willSet{
+            //design the button if possible
             if newValue, cancelButton != nil, cancelButtonHeight != 0  {
                 _ = cancelButtonStyle?(cancelButton,cancelButtonHeight)
             }
             
         }
         didSet{
-            
+            //safe check if cancel button is not nil
             if cancelButton != nil {
+                
+                //update the height constraint
                 cancelButtonHeightConstraint =
                     cancelButton.heightAnchor
                         .constraint(equalToConstant: cancelButtonHeight * (cancelEnabled ? 1.0 : 0.0))
+                
+                //animate with alpha
                 let alpha: CGFloat = (cancelEnabled ? 1.0 : 0.0)
+                
+                //copy values for use in closure
                 let newValue = cancelEnabled
                 if newValue {cancelButton.isHidden = false}
+                
+                //animate stack view with completion block and additional animations
                 animateStackView(completionBlock: { [weak self] in
                     if !newValue {
                         self?.cancelButton.isHidden = true
@@ -366,9 +378,11 @@ open class AZDialogViewController: UIViewController{
     ///   - completion: Completion block that is called after the controller is dismiss.
     override open func dismiss(animated: Bool = true,completion: (()->Void)?=nil){
         if animated {
-            UIView.animate(withDuration: 0.2, animations: { () -> Void in
-                self.baseView.center.y = self.view.bounds.maxY + (self.baseView.bounds.midY)
-                self.view.backgroundColor = .clear
+            UIView.animate(withDuration: animationDuration, animations: { [weak self] () -> Void in
+                if let `self` = self{
+                    self.baseView.center.y = self.view.bounds.maxY + (self.baseView.bounds.midY)
+                    self.view.backgroundColor = .clear
+                }
             }, completion: { (complete) -> Void in
                 super.dismiss(animated: false, completion: completion)
             })
@@ -470,12 +484,13 @@ open class AZDialogViewController: UIViewController{
             didInitAnimation = true
             baseView.center.y = self.view.bounds.maxY + baseView.bounds.midY
             baseView.isHidden = false
-            UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 6.0, options: [], animations: { () -> Void in
-                self.baseView.center = self.view.center
-                let backgroundColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: self.backgroundAlpha)
-                self.view.backgroundColor = backgroundColor
-                }) { (complete) -> Void in
-            }
+            UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 6.0, options: [], animations: { [weak self]() -> Void in
+                if let `self` = self {
+                    self.baseView.center = self.view.center
+                    let backgroundColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: self.backgroundAlpha)
+                    self.view.backgroundColor = backgroundColor
+                }
+            })
         }
     }
     
@@ -540,6 +555,8 @@ open class AZDialogViewController: UIViewController{
             return
         }
         
+        let animationDuration = self.animationDuration
+        
         let translation = sender.translation(in: self.view)
         baseView.center = CGPoint(x: baseView.lastLocation.x , y: baseView.lastLocation.y + translation.y)
         
@@ -548,18 +565,17 @@ open class AZDialogViewController: UIViewController{
                 self.baseView.center = finalPoint
                 return
             }
-            UIView.animate(withDuration: 0.35, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 2.0, options: [], animations: { () -> Void in
-                self.baseView.center = finalPoint
-            }, completion: { (complete) -> Void in
-            })
+            UIView.animate(withDuration: 0.35, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 2.0, options: [], animations: {[weak self] () -> Void in
+                self?.baseView.center = finalPoint
+            }, completion: nil)
         }
         
-        let dismissInDirection:(CGPoint)->Void = { (finalPoint) in
-            UIView.animate(withDuration: 0.2, animations: { () -> Void in
-                self.baseView.center = finalPoint
-                self.view.backgroundColor = .clear
+        let dismissInDirection:(CGPoint)->Void = { [weak self] (finalPoint) in
+            UIView.animate(withDuration: animationDuration, animations: { () -> Void in
+                self?.baseView.center = finalPoint
+                self?.view.backgroundColor = .clear
             }, completion: { (complete) -> Void in
-                self.dismiss(animated: false, completion: nil)
+                self?.dismiss(animated: false, completion: nil)
             })
         }
         
@@ -829,7 +845,11 @@ open class AZDialogViewController: UIViewController{
         self.modalTransitionStyle = .crossDissolve
     }
     
-    // Helper function to change the dialog using an animation
+    /// Helper function to change the dialog using an animation
+    ///
+    /// - Parameters:
+    ///   - completionBlock: Block that is executed once aniamtions are finished.
+    ///   - animations: Additional animations to execute.
     fileprivate func animateStackView(completionBlock:(()->Void)?=nil,withOptionalAnimations animations: (()->Void)?=nil){
         UIView.animate(withDuration: animationDuration, animations: { [weak self] in
             animations?()
@@ -848,6 +868,8 @@ open class AZDialogViewController: UIViewController{
     ///   - showImage: shows the image if true
     ///   - completion: completion block, to execute after the animation
     fileprivate func updateConstraints(showImage: Bool,completion: (()->Void)?=nil){
+        
+        //update constraints only if they already exists.
         if generalStackViewTopConstraint == nil || imageViewHolderConstraint == nil || imageViewHolderHeightConstraint == nil{
             return
         }
@@ -875,17 +897,19 @@ open class AZDialogViewController: UIViewController{
         imageViewHolderHeightConstraint = imageViewHolder.heightAnchor.constraint(equalToConstant: constant)
         imageViewHolderHeightConstraint.isActive = true
         
+        //setup layers
         imageViewHolder.layer.cornerRadius = imageHolderSize / 2
         imageViewHolder.layer.masksToBounds = true
         
         imageView.layer.cornerRadius = (imageHolderSize - 2 * 5) / 2
         imageView.layer.masksToBounds = true
         
+        //setup transform
         let transform = showImage ? CGAffineTransform(scaleX: 0, y: 0) : .identity
         imageViewHolder.transform = transform
         imageView.transform = transform
         
-        
+        //animate changes
         animateStackView(completionBlock: {
             completion?()
         }){ [weak self] in

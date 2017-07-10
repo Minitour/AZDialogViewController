@@ -30,7 +30,8 @@ class ViewController: UIViewController {
         switch sender.tag{
         case 0:
             //ignDialog()
-            loadingIndicator()
+            //loadingIndicator()
+            imagePreviewDialog()
         case 1:
             editUserDialog()
         case 2:
@@ -40,6 +41,28 @@ class ViewController: UIViewController {
         default:
             break
         }
+    }
+    
+    
+    func imagePreviewDialog(){
+        let dialog = AZDialogViewController(title: "Image",message: "Image Description")
+        let container = dialog.container
+        let imageView = UIImageView(image: #imageLiteral(resourceName: "image"))
+        imageView.contentMode = .scaleAspectFit
+        container.addSubview(imageView)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
+        imageView.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
+        imageView.leftAnchor.constraint(equalTo: container.leftAnchor).isActive = true
+        imageView.rightAnchor.constraint(equalTo: container.rightAnchor).isActive = true
+        
+        dialog.customViewSizeRatio = imageView.image!.size.height / imageView.image!.size.width
+        
+        dialog.addAction(AZDialogAction(title: "Done", handler: { (dialog) -> (Void) in
+            dialog.image = #imageLiteral(resourceName: "ign")
+        }))
+        
+        dialog.show(in: self)
     }
     
     func loadingIndicator(){
@@ -62,7 +85,7 @@ class ViewController: UIViewController {
             button.layer.borderColor = self.primaryColor.cgColor
         }
         
-        dialog.animationDuration = 5.0
+        //dialog.animationDuration = 5.0
         dialog.customViewSizeRatio = 0.2
         dialog.dismissDirection = .none
         dialog.allowDragGesture = false
@@ -74,11 +97,11 @@ class ViewController: UIViewController {
             dialog.message = "Preparing..."
         }
         
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 13) {
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 4) {
             dialog.message = "Syncing accounts..."
         }
         
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 17) {
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 5) {
             dialog.title = "Ready"
             dialog.message = "Let's get started"
             dialog.image = #imageLiteral(resourceName: "image")
@@ -86,6 +109,8 @@ class ViewController: UIViewController {
             dialog.addAction(AZDialogAction(title: "Go", handler: { (dialog) -> (Void) in
                dialog.cancelEnabled = !dialog.cancelEnabled
             }))
+            dialog.dismissDirection = .bottom
+            dialog.allowDragGesture = true
         }
         
         dialog.cancelButtonStyle = { (button,height) in
