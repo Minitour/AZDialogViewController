@@ -60,6 +60,14 @@ open class AZDialogViewController: UIViewController{
     
     fileprivate var imageViewHolderConstraint: NSLayoutConstraint!
     
+    fileprivate var cancelButtonHeightConstraint: NSLayoutConstraint!{
+        willSet{
+            if cancelButtonHeightConstraint != nil { cancelButtonHeightConstraint.isActive = false }
+        }didSet{
+            cancelButtonHeightConstraint.isActive = true
+        }
+    }
+    
     //The height constraint of the custom view `container`
     fileprivate var customViewHeightAnchor: NSLayoutConstraint!{
         willSet{
@@ -178,6 +186,8 @@ open class AZDialogViewController: UIViewController{
     /// Background alpha. default is 0.2
     open var backgroundAlpha: Float = 0.2
     
+    open var animationDuration: TimeInterval = 0.2
+    
     /// Change the title of the dialog
     open override var title: String?{
         get{
@@ -217,6 +227,71 @@ open class AZDialogViewController: UIViewController{
         }
     }
     
+    /// Use this to hide/show the cancel button
+    open var cancelEnabled: Bool = false{
+        willSet{
+            if newValue, cancelButton != nil, cancelButtonHeight != 0  {
+                _ = cancelButtonStyle?(cancelButton,cancelButtonHeight)
+            }
+            
+        }
+        didSet{
+            
+            if cancelButton != nil {
+                cancelButtonHeightConstraint =
+                    cancelButton.heightAnchor
+                        .constraint(equalToConstant: cancelButtonHeight * (cancelEnabled ? 1.0 : 0.0))
+                let alpha: CGFloat = (cancelEnabled ? 1.0 : 0.0)
+                let newValue = cancelEnabled
+                if newValue {cancelButton.isHidden = false}
+                animateStackView(completionBlock: { [weak self] in
+                    if !newValue {
+                        self?.cancelButton.isHidden = true
+                    }
+                    
+                }) {[weak self] in
+                    self?.cancelButton?.alpha = alpha
+                    
+                }
+            }
+            
+            
+        }
+    }
+    
+    open var image: UIImage?{
+        get{
+            return imageView?.image
+        }set{
+            if let image = newValue{
+                //not nil
+                if let _ = imageView.image {
+                    // old value not nil
+                    //new value not nil
+                    //only update the image
+                    imageView?.image = image
+                }else {
+                    //old nil
+                    //new value not nil
+                    //update image and constraints
+                    imageView?.image = image
+                    updateConstraints(showImage: true)
+                }
+            }else{
+                //nil
+                if let _ = imageView.image {
+                    //old value not nil
+                    updateConstraints(showImage: false){ [weak self] in
+                        self?.imageView.image = nil
+                    }
+                    
+                }
+            }
+            
+            
+        }
+    }
+    
     /// Add an action button to the dialog. Make sure you add the actions before calling the .show() function.
     ///
     /// - Parameter action: The AZDialogAction.
@@ -225,9 +300,53 @@ open class AZDialogViewController: UIViewController{
         
         if buttonsStackView != nil{
             let button = setupButton(index: actions.count-1)
-            buttonsStackView.addArrangedSubview(button)
+            self.buttonsStackView.addArrangedSubview(button)
+            //button.frame = buttonsStackView.bounds
+            button.center = CGPoint(x: buttonsStackView.bounds.midX,y: buttonsStackView.bounds.maxY)
             animateStackView()
         }
+    }
+    
+    
+    /// Remove a button at a certain index.
+    ///
+    /// - Parameter index: The index at which you would like to remove the action.
+    open func removeAction(at index: Int){
+        if actions.count <= index{
+            return
+        }
+        
+        actions.remove(at: index)
+        
+        if buttonsStackView == nil {
+            return
+        }
+        
+        for subview in buttonsStackView.arrangedSubviews{
+            if subview.tag == index{
+                subview.removeFromSuperview()
+            }
+        }
+        
+        var i = 0
+        for view in buttonsStackView.arrangedSubviews{
+            view.tag = i
+            i+=1
+        }
+        
+        animateStackView()
+    }
+    
+    
+    /// Remove all actions
+    open func removeAllActions(){
+        actions.removeAll()
+        
+        for view in buttonsStackView.arrangedSubviews{
+            view.removeFromSuperview()
+        }
+        
+        animateStackView()
     }
     
     /// The primary fuction to present the dialog.
@@ -528,25 +647,6 @@ open class AZDialogViewController: UIViewController{
         (actions[sender.tag]!.handler)?(self)
     }
     
-    fileprivate func setup(){
-        actions = [AZDialogAction?]()
-        self.modalPresentationStyle = .overCurrentContext
-        self.modalTransitionStyle = .crossDissolve
-    }
-    
-    // Helper function to change the dialog using an animation
-    fileprivate func animateStackView(completionBlock:(()->Void)?=nil,withOptionalAnimations animations: (()->Void)?=nil){
-        UIView.animate(withDuration: 0.2, animations: { [weak self] in
-            animations?()
-            self?.generalStackView?.setNeedsLayout()
-            self?.generalStackView?.layoutIfNeeded()
-            self?.baseView?.setNeedsLayout()
-            self?.baseView?.layoutIfNeeded()
-        }) { (bool) in
-            completionBlock?()
-        }
-    }
-    
     /// Setup Image View
     fileprivate func setupImage(showImage: Bool)->CGFloat{
         let imageHolderSize: CGFloat = showImage ? CGFloat(Int((deviceWidth - 2 * deviceWidth / 8) / 3))  : 0
@@ -567,10 +667,18 @@ open class AZDialogViewController: UIViewController{
 
         imageView.layer.cornerRadius = (imageHolderSize - 2 * 5) / 2
         imageView.layer.masksToBounds = true
+        /*
+ 
         imageView.topAnchor.constraint(equalTo: imageViewHolder.topAnchor, constant: 5).isActive = true
         imageView.rightAnchor.constraint(equalTo: imageViewHolder.rightAnchor, constant: -5).isActive = true
         imageView.leftAnchor.constraint(equalTo: imageViewHolder.leftAnchor, constant: 5).isActive = true
         imageView.bottomAnchor.constraint(equalTo: imageViewHolder.bottomAnchor, constant: -5).isActive = true
+        */
+        
+        imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor, multiplier: 1.0).isActive = true
+        imageView.widthAnchor.constraint(equalTo: imageViewHolder.widthAnchor, multiplier: 0.90).isActive = true
+        imageView.centerXAnchor.constraint(equalTo: imageViewHolder.centerXAnchor).isActive = true
+        imageView.centerYAnchor.constraint(equalTo: imageViewHolder.centerYAnchor).isActive = true
         
         return imageMultiplier
     }
@@ -588,96 +696,7 @@ open class AZDialogViewController: UIViewController{
         
         generalStackViewTopConstraint =
             generalStackView.topAnchor.constraint(equalTo: imageViewHolder.bottomAnchor, constant: spacing + spacing * imageMultiplier)
-        print("Spacing is: \(spacing)")
-        print(spacing + spacing * imageMultiplier)
         generalStackViewTopConstraint.isActive = true
-    }
-    
-    var image: UIImage?{
-        get{
-            return imageView?.image
-        }set{
-            if let image = newValue{
-                //not nil
-                if let _ = imageView.image {
-                    // old value not nil
-                    //new value not nil
-                    //only update the image
-                    imageView?.image = image
-                }else {
-                    //old nil
-                    //new value not nil
-                    //update image and constraints
-                    imageView?.image = image
-                    updateConstraints(showImage: true)
-                }
-            }else{
-                //nil
-                if let _ = imageView.image {
-                    //old value not nil
-                    updateConstraints(showImage: false){ [weak self] in
-                        self?.imageView.image = nil
-                    }
-                    
-                }
-            }
-            
-            
-        }
-    }
-    
-    func updateConstraints(showImage: Bool,completion: (()->Void)?=nil){
-        if generalStackViewTopConstraint == nil || imageViewHolderConstraint == nil || imageViewHolderHeightConstraint == nil{
-            return
-        }
-        
-        //remove existing constraint
-        generalStackViewTopConstraint.isActive = false
-        imageViewHolderConstraint.isActive = false
-        imageViewHolderHeightConstraint.isActive = false
-        
-        
-        //update constraints
-        let imageHolderSize: CGFloat = CGFloat(Int((deviceWidth - 2 * deviceWidth / 8) / 3))
-        let constant = showImage ? imageHolderSize : 0.0
-        
-        generalStackViewTopConstraint =
-            generalStackView
-                .topAnchor.constraint(equalTo: imageViewHolder.bottomAnchor, constant: spacing + spacing * (showImage ? 0.0 : 1.0))
-
-        print(spacing + spacing * (showImage ? 1.0 : 0.0))
-        generalStackViewTopConstraint.isActive = true
-        
-        imageViewHolderConstraint =
-            imageViewHolder.topAnchor.constraint(equalTo: baseView.topAnchor, constant: -constant/3)
-        imageViewHolderConstraint.isActive = true
-        
-        imageViewHolderHeightConstraint = imageViewHolder.heightAnchor.constraint(equalToConstant: constant)
-        imageViewHolderHeightConstraint.isActive = true
-        
-        imageViewHolder.layer.cornerRadius = imageHolderSize / 2
-        imageViewHolder.layer.masksToBounds = true
-        
-        imageView.layer.cornerRadius = (imageHolderSize - 2 * 5) / 2
-        imageView.layer.masksToBounds = true
-        
-        let transform = showImage ? CGAffineTransform(scaleX: 0, y: 0) : .identity
-        imageViewHolder.transform = transform
-        imageView.transform = transform
-        
-        
-        animateStackView(completionBlock: { [weak self] in
-            if !showImage{
-                self?.imageView.image = nil
-            }
-        }){ [weak self] in
-            
-            self?.imageViewHolder.alpha = showImage ? 1.0 : 0.0
-            let inverseTransform = showImage ? .identity : CGAffineTransform(scaleX: 0.1, y: 0.1)
-            self?.imageViewHolder.transform = inverseTransform
-            self?.imageView.transform = inverseTransform
-        }
-        
     }
     
     /// Setup Title Label
@@ -764,13 +783,14 @@ open class AZDialogViewController: UIViewController{
         if cancelButtonHeight == 0 {cancelButtonHeight = deviceHeight * 0.0449}
         cancelButton.setTitle(cancelTitle, for: [])
         cancelButton.titleLabel?.font = UIFont(name: fontName, size: cancelButtonHeight * 0.433)
-        let showCancelButton = cancelButtonStyle?(cancelButton,cancelButtonHeight) ?? false
+        let showCancelButton = (cancelButtonStyle?(cancelButton,cancelButtonHeight) ?? false) && cancelEnabled
         let cancelMultiplier: CGFloat = showCancelButton ? 1.0 : 0.0
         cancelButton.isHidden = (showCancelButton ? cancelButtonHeight : 0) <= 0
         cancelButton.topAnchor.constraint(equalTo: generalStackView.bottomAnchor,constant: spacing).isActive = true
         cancelButton.centerXAnchor.constraint(equalTo: baseView.centerXAnchor).isActive = true
         cancelButton.bottomAnchor.constraint(equalTo: baseView.bottomAnchor,constant: -spacing).isActive = true
-        cancelButton.heightAnchor.constraint(equalToConstant: cancelButtonHeight  * cancelMultiplier).isActive = true
+        
+        cancelButtonHeightConstraint = cancelButton.heightAnchor.constraint(equalToConstant: cancelButtonHeight  * cancelMultiplier)
         cancelButton.addTarget(self, action: #selector(AZDialogViewController.cancelAction(_:)), for: .touchUpInside)
     }
     
@@ -801,6 +821,81 @@ open class AZDialogViewController: UIViewController{
             rightToolItem.heightAnchor.constraint(equalToConstant: 20).isActive = true
             rightToolItem.addTarget(self, action: #selector(AZDialogViewController.handleRightTool(_:)), for: .touchUpInside)
         }
+    }
+    
+    fileprivate func setup(){
+        actions = [AZDialogAction?]()
+        self.modalPresentationStyle = .overCurrentContext
+        self.modalTransitionStyle = .crossDissolve
+    }
+    
+    // Helper function to change the dialog using an animation
+    fileprivate func animateStackView(completionBlock:(()->Void)?=nil,withOptionalAnimations animations: (()->Void)?=nil){
+        UIView.animate(withDuration: animationDuration, animations: { [weak self] in
+            animations?()
+            self?.generalStackView?.setNeedsLayout()
+            self?.generalStackView?.layoutIfNeeded()
+            self?.baseView?.setNeedsLayout()
+            self?.baseView?.layoutIfNeeded()
+        }) { (bool) in
+            completionBlock?()
+        }
+    }
+    
+    /// Helper function to update the constraints
+    ///
+    /// - Parameters:
+    ///   - showImage: shows the image if true
+    ///   - completion: completion block, to execute after the animation
+    fileprivate func updateConstraints(showImage: Bool,completion: (()->Void)?=nil){
+        if generalStackViewTopConstraint == nil || imageViewHolderConstraint == nil || imageViewHolderHeightConstraint == nil{
+            return
+        }
+        
+        //remove existing constraint
+        generalStackViewTopConstraint.isActive = false
+        imageViewHolderConstraint.isActive = false
+        imageViewHolderHeightConstraint.isActive = false
+        
+        
+        //update constraints
+        let imageHolderSize: CGFloat = CGFloat(Int((deviceWidth - 2 * deviceWidth / 8) / 3))
+        let constant = showImage ? imageHolderSize : 0.0
+        
+        generalStackViewTopConstraint =
+            generalStackView
+                .topAnchor.constraint(equalTo: imageViewHolder.bottomAnchor, constant: spacing + spacing * (showImage ? 0.0 : 1.0))
+        
+        generalStackViewTopConstraint.isActive = true
+        
+        imageViewHolderConstraint =
+            imageViewHolder.topAnchor.constraint(equalTo: baseView.topAnchor, constant: -constant/3)
+        imageViewHolderConstraint.isActive = true
+        
+        imageViewHolderHeightConstraint = imageViewHolder.heightAnchor.constraint(equalToConstant: constant)
+        imageViewHolderHeightConstraint.isActive = true
+        
+        imageViewHolder.layer.cornerRadius = imageHolderSize / 2
+        imageViewHolder.layer.masksToBounds = true
+        
+        imageView.layer.cornerRadius = (imageHolderSize - 2 * 5) / 2
+        imageView.layer.masksToBounds = true
+        
+        let transform = showImage ? CGAffineTransform(scaleX: 0, y: 0) : .identity
+        imageViewHolder.transform = transform
+        imageView.transform = transform
+        
+        
+        animateStackView(completionBlock: {
+            completion?()
+        }){ [weak self] in
+            
+            self?.imageViewHolder.alpha = showImage ? 1.0 : 0.0
+            let inverseTransform = showImage ? .identity : CGAffineTransform(scaleX: 0.1, y: 0.1)
+            self?.imageViewHolder.transform = inverseTransform
+            self?.imageView.transform = inverseTransform
+        }
+        
     }
 }
 

@@ -62,29 +62,36 @@ class ViewController: UIViewController {
             button.layer.borderColor = self.primaryColor.cgColor
         }
         
+        dialog.animationDuration = 5.0
         dialog.customViewSizeRatio = 0.2
         dialog.dismissDirection = .none
         dialog.allowDragGesture = false
         dialog.dismissWithOutsideTouch = true
         dialog.show(in: self)
         
-        let when = DispatchTime.now() + 3 // change 2 to desired number of seconds
+        let when = DispatchTime.now() + 3  // change 2 to desired number of seconds
         DispatchQueue.main.asyncAfter(deadline: when) {
             dialog.message = "Preparing..."
         }
         
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 4) {
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 13) {
             dialog.message = "Syncing accounts..."
         }
         
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 5) {
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 17) {
             dialog.title = "Ready"
             dialog.message = "Let's get started"
             dialog.image = #imageLiteral(resourceName: "image")
             dialog.customViewSizeRatio = 0
             dialog.addAction(AZDialogAction(title: "Go", handler: { (dialog) -> (Void) in
-               dialog.dismiss()
+               dialog.cancelEnabled = !dialog.cancelEnabled
             }))
+        }
+        
+        dialog.cancelButtonStyle = { (button,height) in
+            button.tintColor = self.primaryColor
+            button.setTitle("CANCEL", for: [])
+            return false
         }
         
         
@@ -159,15 +166,19 @@ class ViewController: UIViewController {
         dialogController.showSeparator = true
         
         dialogController.addAction(AZDialogAction(title: "Edit Name", handler: { (dialog) -> (Void) in
-            dialog.dismiss()
+            //dialog.removeAction(at: 0)
+            dialog.addAction(AZDialogAction(title: "action", handler: { (dialog) -> (Void) in
+               dialog.dismiss()
+            }))
         }))
         
         dialogController.addAction(AZDialogAction(title: "Remove Friend", handler: { (dialog) -> (Void) in
-            dialog.dismiss()
+            dialog.removeAction(at: 1)
         }))
         
         dialogController.addAction(AZDialogAction(title: "Block", handler: { (dialog) -> (Void) in
             //dialog.spacing = 20
+            dialog.removeAction(at: 2)
         }))
         
         dialogController.cancelButtonStyle = { (button,height) in
