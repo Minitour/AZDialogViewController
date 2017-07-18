@@ -1,13 +1,13 @@
 # AZDialogViewController
 A highly customizable alert dialog controller that mimics Snapchat's alert dialog.
 
-
+[![CocoaPods](https://img.shields.io/cocoapods/v/AZDialogView.svg)]()
+[![CocoaPods](https://img.shields.io/cocoapods/l/AZDialogView.svg)]()
+[![CocoaPods](https://img.shields.io/cocoapods/p/AZDialogView.svg)]()
 ## Screenshots
 
- <img src="Screenshots/demo.gif" width="320" />
- <img src="Screenshots/sc_1.png" width="320" />  
- <img src="Screenshots/sc_2.png" width="320" />
- <img src="Screenshots/sc_3.png" width="320" /> 
+ <img src="Screenshots/demo.gif" width="320" /> <img src="Screenshots/sc_1.png" width="320" />  
+ <img src="Screenshots/sc_2.png" width="320" /> 
  <img src="Screenshots/sc_4.png" width="320" /> 
  
  
@@ -46,20 +46,20 @@ dialog.allowDragGesture = false
 
 #### Add Actions:
 ```swift
-dialog.addAction(AZDialogAction(title: "Edit Name", handler: { (dialog) -> (Void) in
+dialog.addAction(AZDialogAction(title: "Edit Name") { (dialog) -> (Void) in
         //add your actions here.
         dialog.dismiss()
-}))
+})
         
-dialog.addAction(AZDialogAction(title: "Remove Friend", handler: { (dialog) -> (Void) in
+dialog.addAction(AZDialogAction(title: "Remove Friend") { (dialog) -> (Void) in
         //add your actions here.
         dialog.dismiss()
-}))
+})
         
-dialog.addAction(AZDialogAction(title: "Block", handler: { (dialog) -> (Void) in
+dialog.addAction(AZDialogAction(title: "Block") { (dialog) -> (Void) in
         //add your actions here.
         dialog.dismiss()
-}))
+})
 ```
 
 #### Add Image:
@@ -70,6 +70,39 @@ dialog.imageHandler = { (imageView) in
        return true //must return true, otherwise image won't show.
 }
 ```
+
+### Custom View
+```swift
+/*
+ customViewSizeRatio is the precentage of the height in respect to the width of the view. 
+ i.e. if the width is 100 and we set customViewSizeRatio to be 0.2 then the height will be 20. 
+ The default value is 0.0.
+*/
+dialog.customViewSizeRatio = 0.2
+
+//Add the subviews
+let container = dialog.container
+let indicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)
+dialog.container.addSubview(indicator)
+
+//add constraints
+indicator.translatesAutoresizingMaskIntoConstraints = false
+indicator.centerXAnchor.constraint(equalTo: container.centerXAnchor).isActive = true
+indicator.centerYAnchor.constraint(equalTo: container.centerYAnchor).isActive = true
+indicator.startAnimating()
+```
+
+#### Present The dialog:
+```swift
+dialog.show(in: self)
+
+//or
+
+//Make sure to have animated set to false otherwise you'll see a delay.
+self.present(dialog, animated: false, completion: nil)
+```
+
+## Design
 
 #### Customize Action Buttons Style:
 ```swift
@@ -106,6 +139,8 @@ dialog.leftToolAction = { (button) in
 
 #### Customize Cancel Button Style:
 ```swift
+dialog.cancelEnabled = true
+
 dialog.cancelButtonStyle = { (button,height) in
         button.tintColor = self.primaryColor
         button.setTitle("CANCEL", for: [])
@@ -113,12 +148,4 @@ dialog.cancelButtonStyle = { (button,height) in
 }
 ```
 
-#### Present The dialog:
-```swift
-dialog.show(in: self)
 
-//or
-
-//Make sure to have animated set to false otherwise you'll see a delay.
-self.present(dialog, animated: false, completion: nil)
-```
