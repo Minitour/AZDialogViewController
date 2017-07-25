@@ -31,7 +31,8 @@ class ViewController: UIViewController {
         case 0:
             //ignDialog()
             //loadingIndicator()
-            imagePreviewDialog()
+            //imagePreviewDialog()
+            tableViewDialog()
         case 1:
             editUserDialog()
         case 2:
@@ -294,6 +295,7 @@ class ViewController: UIViewController {
             }
         }
         
+        dialogController.cancelEnabled = true
         dialogController.cancelButtonStyle = { (button, height) in
             button.tintColor = primary
             button.setTitle("CANCEL", for: [])
@@ -323,7 +325,67 @@ class ViewController: UIViewController {
         
         dialogController.show(in: self)
     }
+    
+    func tableViewDialog(){
+        let dialog = AZDialogViewController(title: "Switch Account", message: nil)
+        
+        dialog.showSeparator = false
+        
+        let container = dialog.container
+        
+        dialog.customViewSizeRatio = 1.0
+        
+        let tableView = UITableView(frame: .zero, style: .plain)
+        
+        container.addSubview(tableView)
+        
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.separatorColor = .clear
+        
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
+        tableView.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
+        tableView.leftAnchor.constraint(equalTo: container.leftAnchor).isActive = true
+        tableView.rightAnchor.constraint(equalTo: container.rightAnchor).isActive = true
+        
+        
+        dialog.show(in: self)
+        
+    }
+    
+    var items: [String] = ["Account 1","Account 2","Account 3","Account 4","Account 5"]
+    
 }
+
+
+
+extension ViewController: UITableViewDelegate{
+    public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print(indexPath)
+    }
+}
+
+extension ViewController: UITableViewDataSource{
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return items.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if let cell = tableView.dequeueReusableCell(withIdentifier: "cell"){
+            cell.textLabel?.text = items[indexPath.row]
+            return cell
+        }
+        return UITableViewCell()
+    }
+}
+
 
 extension UIImage {
     class func imageWithColor(_ color: UIColor) -> UIImage {

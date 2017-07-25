@@ -80,6 +80,14 @@ open class AZDialogViewController: UIViewController{
         }
     }
     
+    fileprivate var baseViewCenterYConstraint: NSLayoutConstraint!{
+        willSet{
+            if baseViewCenterYConstraint != nil {baseViewCenterYConstraint.isActive = false }
+        }didSet{
+            baseViewCenterYConstraint.isActive = true
+        }
+    }
+    
     // Title of the dialog.
     fileprivate var mTitle: String?{
         didSet{
@@ -124,19 +132,19 @@ open class AZDialogViewController: UIViewController{
     
     //MARK: - Getters
     
-    open fileprivate(set) var spacing: CGFloat = -1
+    open fileprivate(set) var spacing: CGFloat = -1.0
     
-    open fileprivate(set) var stackSpacing: CGFloat = 0
+    open fileprivate(set) var stackSpacing: CGFloat = 0.0
     
     open fileprivate(set) var sideSpacing: CGFloat = 20.0
     
-    open fileprivate(set) var buttonHeight: CGFloat = 0
+    open fileprivate(set) var buttonHeight: CGFloat = 0.0
     
-    open fileprivate(set) var cancelButtonHeight:CGFloat = 0
+    open fileprivate(set) var cancelButtonHeight:CGFloat = 0.0
     
-    open fileprivate(set) var titleFontSize: CGFloat = 0
+    open fileprivate(set) var titleFontSize: CGFloat = 0.0
     
-    open fileprivate(set) var messageFontSize: CGFloat = 0
+    open fileprivate(set) var messageFontSize: CGFloat = 0.0
     
     open fileprivate(set) var fontName: String = "AvenirNext-Medium"
     
@@ -189,7 +197,24 @@ open class AZDialogViewController: UIViewController{
     /// Background alpha. default is 0.2
     open var backgroundAlpha: Float = 0.2
     
+    /// Animation duration.
     open var animationDuration: TimeInterval = 0.2
+    
+    /// The offset of the dialog.
+    open var contentOffset: CGFloat = 0.0 {
+        didSet{
+            if let baseView = self.baseView{
+                baseViewCenterYConstraint =
+                    baseView.centerYAnchor.constraint(equalTo: view.centerYAnchor,constant: contentOffset)
+                
+                let center = self.view.center
+                let offset = contentOffset
+                UIView.animate(withDuration: animationDuration){
+                    baseView.center = CGPoint(x: center.x ,y: center.y + offset)
+                }
+            }
+        }
+    }
     
     /// Change the title of the dialog
     open override var title: String?{
@@ -271,6 +296,7 @@ open class AZDialogViewController: UIViewController{
         }
     }
     
+    /// The dialog's image.
     open var image: UIImage?{
         get{
             return imageView?.image
@@ -379,12 +405,12 @@ open class AZDialogViewController: UIViewController{
     override open func dismiss(animated: Bool = true,completion: (()->Void)?=nil){
         if animated {
             UIView.animate(withDuration: animationDuration, animations: { [weak self] () -> Void in
-                if let `self` = self{
-                    self.baseView.center.y = self.view.bounds.maxY + (self.baseView.bounds.midY)
-                    self.view.backgroundColor = .clear
+                if let `self` = self,let baseView = self.baseView,let view = self.view{
+                    baseView.center.y = view.bounds.maxY + baseView.bounds.midY
+                    view.backgroundColor = .clear
                 }
-            }, completion: { (complete) -> Void in
-                super.dismiss(animated: false, completion: completion)
+                }, completion: { (complete) -> Void in
+                    super.dismiss(animated: false, completion: completion)
             })
         }else{
             super.dismiss(animated: false, completion: completion)
@@ -469,9 +495,13 @@ open class AZDialogViewController: UIViewController{
     
     override open func viewDidLoad() {
         super.viewDidLoad()
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(AZDialogViewController.handleTapGesture(_:))))
-        baseView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(AZDialogViewController.handleTapGesture(_:))))
+        
+        createGesutre(for: view)
+        createGesutre(for: baseView)
+        createGesutre(for: container)
+        
         baseView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(AZDialogViewController.handlePanGesture(_:))))
+        
         baseView.layer.cornerRadius = 15
         baseView.layer.backgroundColor = UIColor.white.cgColor
         baseView.isHidden = true
@@ -555,19 +585,24 @@ open class AZDialogViewController: UIViewController{
             return
         }
         
+        let contentOffset = self.contentOffset
+        
         let animationDuration = self.animationDuration
         
         let translation = sender.translation(in: self.view)
         baseView.center = CGPoint(x: baseView.lastLocation.x , y: baseView.lastLocation.y + translation.y)
         
         let returnToCenter:(CGPoint,Bool)->Void = { (finalPoint,animate) in
+            var point = finalPoint
+            point.y = point.y + contentOffset
             if !animate {
-                self.baseView.center = finalPoint
+                
+                self.baseView.center = point
                 return
             }
             UIView.animate(withDuration: 0.35, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 2.0, options: [], animations: {[weak self] () -> Void in
-                self?.baseView.center = finalPoint
-            }, completion: nil)
+                self?.baseView.center = point
+                }, completion: nil)
         }
         
         let dismissInDirection:(CGPoint)->Void = { [weak self] (finalPoint) in
@@ -627,7 +662,7 @@ open class AZDialogViewController: UIViewController{
     ///
     /// - Parameter sender: The Gesture Recognizer.
     internal func handleTapGesture(_ sender: UITapGestureRecognizer){
-        if sender.view is BaseView{
+        if sender.view is BaseView || sender.view == container{
             return
         }
         if dismissWithOutsideTouch{
@@ -683,13 +718,6 @@ open class AZDialogViewController: UIViewController{
 
         imageView.layer.cornerRadius = (imageHolderSize - 2 * 5) / 2
         imageView.layer.masksToBounds = true
-        /*
- 
-        imageView.topAnchor.constraint(equalTo: imageViewHolder.topAnchor, constant: 5).isActive = true
-        imageView.rightAnchor.constraint(equalTo: imageViewHolder.rightAnchor, constant: -5).isActive = true
-        imageView.leftAnchor.constraint(equalTo: imageViewHolder.leftAnchor, constant: 5).isActive = true
-        imageView.bottomAnchor.constraint(equalTo: imageViewHolder.bottomAnchor, constant: -5).isActive = true
-        */
         
         imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor, multiplier: 1.0).isActive = true
         imageView.widthAnchor.constraint(equalTo: imageViewHolder.widthAnchor, multiplier: 0.90).isActive = true
@@ -727,7 +755,6 @@ open class AZDialogViewController: UIViewController{
         titleLabel.font = titleFont
         titleLabel.textAlignment = .center
         titleLabel.widthAnchor.constraint(lessThanOrEqualTo: messageLabel.widthAnchor, multiplier: 1.0).isActive = true
-        //titleLabel.heightAnchor.constraint(lessThanOrEqualToConstant: titleHeight).isActive = true
     }
     
     /// Setup Seperator Line
@@ -814,9 +841,9 @@ open class AZDialogViewController: UIViewController{
     fileprivate func setupBaseView(){
         self.baseView.isExclusiveTouch = true
         baseView.widthAnchor.constraint(equalToConstant: deviceWidth * 0.7).isActive = true
-        baseView.centerYAnchor.constraint(equalTo: view.centerYAnchor,constant: 0).isActive = true
         baseView.centerXAnchor.constraint(equalTo: view.centerXAnchor,constant: 0).isActive = true
-        //baseView.heightAnchor.constraint(greaterThanOrEqualToConstant: deviceWidth * 0.5).isActive = true
+        baseViewCenterYConstraint =
+            baseView.centerYAnchor.constraint(equalTo: view.centerYAnchor,constant: contentOffset)
     }
     
     // Setup Tool Items
@@ -921,7 +948,14 @@ open class AZDialogViewController: UIViewController{
         }
         
     }
+    
+    fileprivate func createGesutre(for view: UIView){
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(AZDialogViewController.handleTapGesture(_:)))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+    }
 }
+
 
 public enum AZDialogDismissDirection{
     case top
