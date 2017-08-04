@@ -322,12 +322,101 @@ open class AZDialogViewController: UIViewController{
                     updateConstraints(showImage: false){ [weak self] in
                         self?.imageView.image = nil
                     }
-                    
                 }
             }
-            
-            
         }
+    }
+    
+    /// Enables the rubber effect you would see on a scroll view.
+    open var rubberEnabled: Bool = true
+    
+    /// Returns the estimated dialog frame height.
+    open var estimatedHeight: CGFloat {
+        
+        if isViewLoaded{
+            return baseView.frame.height
+        }
+        
+        func heightForView(_ text:String, font:UIFont, width:CGFloat) -> CGFloat{
+            let label:UILabel = UILabel(frame: CGRect(x: 0, y: 0, width: width, height: CGFloat.greatestFiniteMagnitude))
+            label.numberOfLines = 0
+            label.lineBreakMode = NSLineBreakMode.byWordWrapping
+            label.font = font
+            label.text = text
+            label.textAlignment = .center
+            
+            label.sizeToFit()
+            return label.frame.height
+        }
+        
+        var titleFontSize: CGFloat
+        var messageFontSize: CGFloat
+        var buttonHeight: CGFloat
+        var cancelButtonHeight: CGFloat
+        
+        let width: CGFloat = UIScreen.main.bounds.width
+        let height: CGFloat = UIScreen.main.bounds.height
+        let fontNameBold = self.fontNameBold
+        let fontName = self.fontName
+        let showSeparator = self.showSeparator
+        let mTitle = self.mTitle
+        let mMessage = self.mMessage
+        let spacing = height * 0.012
+        let sideSpacing: CGFloat = 20.0
+        let showImage = image != nil
+        let side: CGFloat = width / 8
+        let labelWidth: CGFloat = width - side * 2 - sideSpacing
+        let imageHolderSize: CGFloat = showImage ? CGFloat(Int((width - 2 * side) / 3))  : 0
+        let imageMultiplier:CGFloat = showImage ? 0.0 : 1.0
+        
+        titleFontSize = height * 0.0269
+        let titleFont = UIFont(name: fontNameBold, size: titleFontSize)
+        let titleHeight:CGFloat = mTitle == nil ? 0.0 : heightForView(mTitle!, font: titleFont!, width: labelWidth)
+        
+        let seperatorHeight: CGFloat = showSeparator ? 0.7 : 0.0
+        let seperatorMultiplier: CGFloat = seperatorHeight > 0.0 ? 1.0 : 0.0
+        
+        messageFontSize = height * 0.0239
+        let labelFont = UIFont(name: fontName, size: messageFontSize)!
+        let messageLableHeight:CGFloat = mMessage == nil ? 0 : heightForView(mMessage!, font: labelFont, width: labelWidth)
+        let messageLabelMultiplier: CGFloat = messageLableHeight > 0 ? 1.0 : 0.0
+        
+        buttonHeight = CGFloat(Int(height * 0.07))
+        let stackViewSize: CGFloat = CGFloat(self.actions.count) * buttonHeight + CGFloat(self.actions.count-1) * (stackSpacing)
+        let stackMultiplier:CGFloat = stackViewSize > 0 ? 1.0 : 0.0
+        
+        cancelButtonHeight = height * 0.0449
+        let cancelMultiplier: CGFloat = cancelEnabled ? 1.0 : 0.0
+        
+        // Elaboration on spacingCalc:
+        //
+        //      3 * spacing : The space between titleLabel and baseView + space between stackView and cancelButton + space between baseView and cancelButton.
+        //      spacing * (seperatorMultiplier + messageLabelMultiplier + 2 * stackMultiplier) : This ranges from 0 to 4.
+        //      seperatorMultiplier: 0 if the seperator has no height, thus it will not have spacing.
+        //      messageLabelMultiplier: 0 if the messageLabel is empty and has no text which means it has no height thus it has no spacing.
+        //      2 * stackMultiplier: 0 if the stack has no buttons. 2 if the stack has atleast 1 button. There is a 2 because the spacing between the stack and other views is 2 * spacing.
+        //
+        let spacingCalc = 3 * spacing + spacing * (imageMultiplier + seperatorMultiplier + messageLabelMultiplier + 2 * stackMultiplier)
+        
+        // The baseViewHeight:
+        //                     Total Space Between Views
+        //                   + Image Holder half height
+        //                   + Title Height
+        //                   + Seperator Height
+        //                   + Message Label Height
+        //                   + Stack View Height
+        //                   + Cancel Button Height.
+        var baseViewHeight:CGFloat = 0.0
+        
+        baseViewHeight += spacingCalc
+        baseViewHeight += (2 * imageHolderSize/3)
+        baseViewHeight += titleHeight
+        baseViewHeight += seperatorHeight
+        baseViewHeight += messageLableHeight
+        baseViewHeight += stackViewSize
+        baseViewHeight += cancelButtonHeight * cancelMultiplier
+        
+        return baseViewHeight
     }
     
     /// Add an action button to the dialog. Make sure you add the actions before calling the .show() function.
@@ -344,7 +433,6 @@ open class AZDialogViewController: UIViewController{
             animateStackView()
         }
     }
-    
     
     /// Remove a button at a certain index.
     ///
@@ -374,7 +462,6 @@ open class AZDialogViewController: UIViewController{
         
         animateStackView()
     }
-    
     
     /// Remove all actions
     open func removeAllActions(){
@@ -417,6 +504,7 @@ open class AZDialogViewController: UIViewController{
         }
     }
     
+    /// Creates the view that the controller manages.
     override open func loadView() {
         super.loadView()
         
@@ -441,23 +529,22 @@ open class AZDialogViewController: UIViewController{
         generalStackView.translatesAutoresizingMaskIntoConstraints = false
         imageViewHolder.translatesAutoresizingMaskIntoConstraints = false
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        messageLabel.translatesAutoresizingMaskIntoConstraints = false
-        separatorView.translatesAutoresizingMaskIntoConstraints = false
-        buttonsStackView.translatesAutoresizingMaskIntoConstraints = false
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         leftToolItem.translatesAutoresizingMaskIntoConstraints = false
         rightToolItem.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(baseView)
+        
         baseView.addSubview(generalStackView)
         baseView.addSubview(imageViewHolder)
         baseView.addSubview(cancelButton)
+        
         generalStackView.addArrangedSubview(titleLabel)
         generalStackView.addArrangedSubview(separatorView)
         generalStackView.addArrangedSubview(messageLabel)
         generalStackView.addArrangedSubview(container)
         generalStackView.addArrangedSubview(buttonsStackView)
+        
         imageViewHolder.addSubview(imageView)
         
         
@@ -493,6 +580,7 @@ open class AZDialogViewController: UIViewController{
         
     }
     
+    /// Called after the controller's view is loaded into memory.
     override open func viewDidLoad() {
         super.viewDidLoad()
         
@@ -506,8 +594,10 @@ open class AZDialogViewController: UIViewController{
         baseView.layer.backgroundColor = UIColor.white.cgColor
         baseView.isHidden = true
         baseView.lastLocation = self.view.center
+        baseView.lastLocation.y = baseView.lastLocation.y + contentOffset
     }
     
+    /// Notifies the view controller that its view was added to a view hierarchy.
     override open func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if !didInitAnimation{
@@ -517,6 +607,7 @@ open class AZDialogViewController: UIViewController{
             UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 6.0, options: [], animations: { [weak self]() -> Void in
                 if let `self` = self {
                     self.baseView.center = self.view.center
+                    self.baseView.center.y = self.baseView.center.y + self.contentOffset
                     let backgroundColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: self.backgroundAlpha)
                     self.view.backgroundColor = backgroundColor
                 }
@@ -524,16 +615,16 @@ open class AZDialogViewController: UIViewController{
         }
     }
     
+    /// Returns a newly initialized view controller with the nib file in the specified bundle.
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
         setup()
     }
-
+    
+    /// Not been implemented
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
     
     /// Primary initializer
     ///
@@ -581,30 +672,61 @@ open class AZDialogViewController: UIViewController{
     /// - Parameter sender: The Gesture Recognizer.
     internal func handlePanGesture(_ sender: UIPanGestureRecognizer){
         
+        //if panning is disabled return
         if !allowDragGesture{
             return
         }
         
+        //copy current offset
         let contentOffset = self.contentOffset
         
+        //copy animation duration
         let animationDuration = self.animationDuration
         
+        //get pan translation
         let translation = sender.translation(in: self.view)
-        baseView.center = CGPoint(x: baseView.lastLocation.x , y: baseView.lastLocation.y + translation.y)
         
-        let returnToCenter:(CGPoint,Bool)->Void = { (finalPoint,animate) in
+        let yTranslation: CGFloat
+        
+        let centerWithOffset = view.center.y + contentOffset
+        
+        //check if should rubber:
+            //view will rubber only if:
+            //- rubber is enabled
+            //- the view is above the center
+            //- dismiss direction is bottom only.
+        if rubberEnabled &&
+            dismissDirection == .bottom &&
+            baseView.center.y + translation.y < centerWithOffset {
+
+            let distanceFromCenter = abs(centerWithOffset - (baseView.lastLocation.y + translation.y))
+            let precentage = sqrt(1.0 / (distanceFromCenter + 1.0)) + 0.10
+            yTranslation = baseView.lastLocation.y + translation.y * precentage
+        }else{
+            yTranslation = baseView.lastLocation.y + translation.y
+        }
+        
+        //apply new center
+        baseView.center = CGPoint(x: baseView.lastLocation.x , y: yTranslation)
+        
+        //create `return to center` function.
+        let returnToCenter:(CGPoint,Bool)->Void = { [weak self] (finalPoint,animate) in
             var point = finalPoint
             point.y = point.y + contentOffset
             if !animate {
-                
-                self.baseView.center = point
+                self?.baseView.center = point
                 return
             }
-            UIView.animate(withDuration: 0.35, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 2.0, options: [], animations: {[weak self] () -> Void in
-                self?.baseView.center = point
-                }, completion: nil)
+            UIView.animate(withDuration: 0.35,
+                           delay: 0,
+                           usingSpringWithDamping: 0.5,
+                           initialSpringVelocity: 2.0,
+                           options: [],
+                           animations: { [weak self] () -> Void in self?.baseView.center = point },
+                           completion: nil)
         }
         
+        //create `dismiss in direction` function.
         let dismissInDirection:(CGPoint)->Void = { [weak self] (finalPoint) in
             UIView.animate(withDuration: animationDuration, animations: { () -> Void in
                 self?.baseView.center = finalPoint
@@ -614,23 +736,30 @@ open class AZDialogViewController: UIViewController{
             })
         }
         
+        //calculate final point, default is center.
         var finalPoint = view.center
         
+        //on gesture ended (by user)
         if sender.state == .ended{
             
+            //calculate velocity
             let velocity = sender.velocity(in: view)
+            
+            //calculate magnitude
             let mag = sqrtf(Float(velocity.x * velocity.x) + Float(velocity.y * velocity.y))
+            
+            //calculate slide multitude
             let slideMult = mag / 200
+            
+            //check if to dismiss.
             let dismissWithGesture = dismissDirection != .none ? true : false
-            
-            
             
             if dismissWithGesture && slideMult > 1 {
                 //dismiss
                 if velocity.y > 0{
                     //dismiss downward
                     if dismissDirection == .bottom || dismissDirection == .both {
-                        finalPoint.y = view.frame.maxY + (baseView.bounds.midY)
+                        finalPoint.y = view.frame.maxY + baseView.bounds.midY
                         dismissInDirection(finalPoint)
                     }else{
                         returnToCenter(finalPoint,true)
@@ -639,7 +768,7 @@ open class AZDialogViewController: UIViewController{
                     
                     //dismiss upward
                     if dismissDirection == .top || dismissDirection == .both {
-                        finalPoint.y = -(baseView.bounds.midY)
+                        finalPoint.y = -baseView.bounds.midY
                         dismissInDirection(finalPoint)
                     }else{
                         returnToCenter(finalPoint,true)
@@ -760,7 +889,6 @@ open class AZDialogViewController: UIViewController{
     /// Setup Seperator Line
     fileprivate func setupSeparator(){
         let seperatorHeight: CGFloat = self.showSeparator ? 0.7 : 0.0
-        //TODO: make the color a customizable var
         separatorView.backgroundColor = separatorColor
         separatorView.widthAnchor.constraint(equalTo: titleLabel.widthAnchor, multiplier: 1.0).isActive = true
         separatorView.heightAnchor.constraint(equalToConstant: seperatorHeight).isActive = true
@@ -786,14 +914,10 @@ open class AZDialogViewController: UIViewController{
     
     /// Setup Buttons (StackView)
     fileprivate func setupButtonsStack(){
-        
-        //let stackViewSize: Int = self.actions.count * Int(buttonHeight) + (self.actions.count-1) * Int(stackSpacing)
-        
         buttonsStackView.distribution = .fillEqually
         buttonsStackView.alignment = .fill
         buttonsStackView.axis = .vertical
         buttonsStackView.spacing = stackSpacing
-        //buttonsStackView.heightAnchor.constraint(equalToConstant: CGFloat(stackViewSize)).isActive = true
         buttonsStackView.widthAnchor.constraint(equalTo: generalStackView.widthAnchor, multiplier: 0.8).isActive = true
         
         for i in 0 ..< actions.count{
@@ -802,6 +926,11 @@ open class AZDialogViewController: UIViewController{
         }
     }
     
+    /// A helper function to setup the button.
+    ///
+    /// - Parameters:
+    ///   - index: The index for the current button.
+    ///
     fileprivate func setupButton(index i:Int)->UIButton{
         if buttonHeight == 0 {buttonHeight = CGFloat(Int(deviceHeight * 0.07))}
         let button = UIButton(type: .custom)
@@ -866,6 +995,7 @@ open class AZDialogViewController: UIViewController{
         }
     }
     
+    // Setup Controller Settings
     fileprivate func setup(){
         actions = [AZDialogAction?]()
         self.modalPresentationStyle = .overCurrentContext
@@ -946,7 +1076,6 @@ open class AZDialogViewController: UIViewController{
             self?.imageViewHolder.transform = inverseTransform
             self?.imageView.transform = inverseTransform
         }
-        
     }
     
     fileprivate func createGesutre(for view: UIView){
@@ -954,8 +1083,8 @@ open class AZDialogViewController: UIViewController{
         tapGesture.cancelsTouchesInView = false
         view.addGestureRecognizer(tapGesture)
     }
+    
 }
-
 
 public enum AZDialogDismissDirection{
     case top
@@ -974,7 +1103,6 @@ open class AZDialogAction{
         self.handler = handler
     }
 }
-
 
 fileprivate class BaseView: UIView{
     

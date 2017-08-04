@@ -188,7 +188,7 @@ class ViewController: UIViewController {
     }
     
     func editUserDialog(){
-        let dialogController = AZDialogViewController(title: "This is a very long string and I am really bored. whatever mate", message: "minitour")
+        let dialogController = AZDialogViewController(title: "Antonio Zaitoun", message: "minitour")
         dialogController.showSeparator = true
         
         dialogController.addAction(AZDialogAction(title: "Edit Name", handler: { (dialog) -> (Void) in
@@ -226,7 +226,13 @@ class ViewController: UIViewController {
         
         dialogController.dismissWithOutsideTouch = true
         
+        let x: CGFloat = self.view.frame.height / 2.0 - dialogController.estimatedHeight / 2.0 - 16
+        
+        dialogController.contentOffset = x
+        
         dialogController.show(in: self)
+        
+        
         
     }
     
@@ -364,9 +370,12 @@ class ViewController: UIViewController {
 
 extension ViewController: UITableViewDelegate{
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print(indexPath)
+        tableView.deselectRow(at: indexPath, animated: true)
+        dismiss(animated: true, completion: nil)
     }
 }
+
+
 
 extension ViewController: UITableViewDataSource{
     func numberOfSections(in tableView: UITableView) -> Int {
