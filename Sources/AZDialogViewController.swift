@@ -122,12 +122,14 @@ open class AZDialogViewController: UIViewController{
     
     // Helper to get the real device width
     fileprivate var deviceWidth: CGFloat {
-        return view.bounds.width < view.bounds.height ? view.bounds.width : view.bounds.height
+        let realValue = view.bounds.width < view.bounds.height ? view.bounds.width : view.bounds.height
+        return realValue > 414 ? realValue / 2 : realValue
     }
     
     // Helper to get the real device height
     fileprivate var deviceHeight: CGFloat {
-        return view.bounds.width < view.bounds.height ? view.bounds.height : view.bounds.width
+        let realValue = view.bounds.width < view.bounds.height ? view.bounds.height : view.bounds.width
+        return realValue > 736 ? realValue / 2 : realValue
     }
     
     //MARK: - Getters
@@ -146,9 +148,9 @@ open class AZDialogViewController: UIViewController{
     
     open fileprivate(set) var messageFontSize: CGFloat = 0.0
     
-    open fileprivate(set) var fontName: String = "AvenirNext-Medium"
+    open fileprivate(set) var fontName: String = "Avenir-Light"
     
-    open fileprivate(set) var fontNameBold: String = "AvenirNext-DemiBold"
+    open fileprivate(set) var fontNameBold: String = "Avenir-Black"
     
     open fileprivate(set) lazy var container: UIView = UIView()
     
@@ -875,7 +877,7 @@ open class AZDialogViewController: UIViewController{
     /// Setup Title Label
     fileprivate func setupTitleLabel(){
         
-        if titleFontSize == 0 {titleFontSize = deviceHeight * 0.0269}
+        if titleFontSize == 0 {titleFontSize = deviceHeight * 0.0275}
         let titleFont = UIFont(name: fontNameBold, size: titleFontSize)
         //let titleHeight:CGFloat = mTitle == nil ? 0 : heightForView(mTitle!, font: titleFont!, width: deviceWidth * 0.6)
         titleLabel.numberOfLines = 0
@@ -896,7 +898,7 @@ open class AZDialogViewController: UIViewController{
     
     /// Setup Message Label
     fileprivate func setupMessageLabel(){
-        if messageFontSize == 0 {messageFontSize = deviceHeight * 0.0239}
+        if messageFontSize == 0 {messageFontSize = deviceHeight * 0.0225}
         let labelFont = UIFont(name: fontName, size: messageFontSize)!
         messageLabel.numberOfLines = 0
         messageLabel.lineBreakMode = NSLineBreakMode.byWordWrapping
@@ -914,11 +916,11 @@ open class AZDialogViewController: UIViewController{
     
     /// Setup Buttons (StackView)
     fileprivate func setupButtonsStack(){
-        buttonsStackView.distribution = .fillEqually
+        buttonsStackView.distribution = .fill
         buttonsStackView.alignment = .fill
         buttonsStackView.axis = .vertical
         buttonsStackView.spacing = stackSpacing
-        buttonsStackView.widthAnchor.constraint(equalTo: generalStackView.widthAnchor, multiplier: 0.8).isActive = true
+        buttonsStackView.widthAnchor.constraint(equalTo: baseView.widthAnchor, multiplier: 0.65).isActive = true
         
         for i in 0 ..< actions.count{
             let button = setupButton(index: i)
@@ -943,7 +945,13 @@ open class AZDialogViewController: UIViewController{
         button.layer.cornerRadius = buttonHeight/2
         button.titleLabel?.font = UIFont(name: fontName, size: buttonHeight * 0.35)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
+        let heightAnchor = button.heightAnchor.constraint(equalToConstant: buttonHeight)
+        
+        if actions.count == 1, i == 0 {
+            heightAnchor.priority = 999
+        }
+        
+        heightAnchor.isActive = true
         self.buttonStyle?(button,buttonHeight,i)
         button.tag = i
         button.addTarget(self, action: #selector(AZDialogViewController.handleAction(_:)), for: .touchUpInside)
@@ -969,7 +977,7 @@ open class AZDialogViewController: UIViewController{
     /// Setup BaseView
     fileprivate func setupBaseView(){
         self.baseView.isExclusiveTouch = true
-        baseView.widthAnchor.constraint(equalToConstant: deviceWidth * 0.7).isActive = true
+        baseView.widthAnchor.constraint(equalToConstant: deviceWidth * 0.75).isActive = true
         baseView.centerXAnchor.constraint(equalTo: view.centerXAnchor,constant: 0).isActive = true
         baseViewCenterYConstraint =
             baseView.centerYAnchor.constraint(equalTo: view.centerYAnchor,constant: contentOffset)

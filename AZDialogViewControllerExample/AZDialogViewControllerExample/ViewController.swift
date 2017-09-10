@@ -29,10 +29,10 @@ class ViewController: UIViewController {
     @IBAction func click(_ sender: UIButton) {
         switch sender.tag{
         case 0:
-            //ignDialog()
+            ignDialog()
             //loadingIndicator()
             //imagePreviewDialog()
-            tableViewDialog()
+            //tableViewDialog()
         case 1:
             editUserDialog()
         case 2:
@@ -59,9 +59,10 @@ class ViewController: UIViewController {
         
         dialog.customViewSizeRatio = imageView.image!.size.height / imageView.image!.size.width
         
-        dialog.addAction(AZDialogAction(title: "Done", handler: { (dialog) -> (Void) in
+        dialog.addAction(AZDialogAction(title: "Done") { (dialog) -> (Void) in
             dialog.image = #imageLiteral(resourceName: "ign")
-        }))
+        })
+        
         
         dialog.show(in: self)
     }
@@ -121,23 +122,28 @@ class ViewController: UIViewController {
         }
         
         
+        
+        
     }
     
     func ignDialog(){
-        let dialogController = AZDialogViewController(title: "ign", message: "some message")
+        let dialogController = AZDialogViewController(title: "IGN",
+                                                      message: "IGN is your destination for gaming, movies, comics and everything you're into. Find the latest reviews, news, videos, and more more.")
         
         dialogController.showSeparator = true
         
-//        dialogController.imageHandler = { (imageView) in
-//            imageView.image = UIImage(named: "ign")
-//            imageView.contentMode = .scaleAspectFill
-//            return true
-//        }
+        dialogController.dismissDirection = .bottom
         
-        dialogController.addAction(AZDialogAction(title: "Subscribe", handler: { (dialog) -> (Void) in
+        dialogController.imageHandler = { (imageView) in
+            imageView.image = UIImage(named: "ign")
+            imageView.contentMode = .scaleAspectFill
+            return true
+        }
+        
+        dialogController.addAction(AZDialogAction(title: "Subscribe", handler: { [weak self] (dialog) -> (Void) in
             //dialog.title = "title"
             //dialog.message = "new message"
-            dialog.image = dialog.image == nil ? #imageLiteral(resourceName: "ign") : nil
+            //dialog.image = dialog.image == nil ? #imageLiteral(resourceName: "ign") : nil
             //dialog.title = ""
             //dialog.message = ""
             //dialog.customViewSizeRatio = 0.2
@@ -145,13 +151,13 @@ class ViewController: UIViewController {
             
         }))
         
-        let container = dialogController.container
-        let button = UIButton(type: .system)
-        button.setTitle("MY BUTTON", for: [])
-        dialogController.container.addSubview(button)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.centerXAnchor.constraint(equalTo: container.centerXAnchor).isActive = true
-        button.centerYAnchor.constraint(equalTo: container.centerYAnchor).isActive = true
+        //let container = dialogController.container
+        //let button = UIButton(type: .system)
+        //button.setTitle("MY BUTTON", for: [])
+        //dialogController.container.addSubview(button)
+        //button.translatesAutoresizingMaskIntoConstraints = false
+        //button.centerXAnchor.constraint(equalTo: container.centerXAnchor).isActive = true
+        //button.centerYAnchor.constraint(equalTo: container.centerYAnchor).isActive = true
         
         
         dialogController.buttonStyle = { (button,height,position) in
@@ -180,8 +186,6 @@ class ViewController: UIViewController {
             print("Share function")
         }
         
-        dialogController.dismissDirection = .both
-        
         dialogController.dismissWithOutsideTouch = true
         
         dialogController.show(in: self)
@@ -193,9 +197,12 @@ class ViewController: UIViewController {
         
         dialogController.addAction(AZDialogAction(title: "Edit Name", handler: { (dialog) -> (Void) in
             //dialog.removeAction(at: 0)
-            dialog.addAction(AZDialogAction(title: "action", handler: { (dialog) -> (Void) in
+            dialog.addAction(AZDialogAction(title: "action") { (dialog) -> (Void) in
                dialog.dismiss()
-            }))
+            })
+            
+            dialog.contentOffset = self.view.frame.height / 2.0 - dialog.estimatedHeight / 2.0 - 16
+            
         }))
         
         dialogController.addAction(AZDialogAction(title: "Remove Friend", handler: { (dialog) -> (Void) in
@@ -205,6 +212,7 @@ class ViewController: UIViewController {
         dialogController.addAction(AZDialogAction(title: "Block", handler: { (dialog) -> (Void) in
             //dialog.spacing = 20
             dialog.removeAction(at: 2)
+            dialog.contentOffset = self.view.frame.height / 2.0 - dialog.estimatedHeight / 2.0 - 16
         }))
         
         dialogController.cancelButtonStyle = { (button,height) in
@@ -213,6 +221,8 @@ class ViewController: UIViewController {
             return true
             
         }
+        
+        dialogController.cancelEnabled = true
         
         dialogController.buttonStyle = { (button,height,position) in
             button.setBackgroundImage(UIImage.imageWithColor(self.primaryColorDark), for: .highlighted)
@@ -226,9 +236,8 @@ class ViewController: UIViewController {
         
         dialogController.dismissWithOutsideTouch = true
         
-        let x: CGFloat = self.view.frame.height / 2.0 - dialogController.estimatedHeight / 2.0 - 16
         
-        dialogController.contentOffset = x
+        dialogController.contentOffset = self.view.frame.height / 2.0 - dialogController.estimatedHeight / 2.0 - 16
         
         dialogController.show(in: self)
         
@@ -278,8 +287,8 @@ class ViewController: UIViewController {
         
         dialogController.dismissWithOutsideTouch = true
         
-        let primary = #colorLiteral(red: 0, green: 0.6862745098, blue: 0.9411764706, alpha: 1)
-        let primaryDark = #colorLiteral(red: 0.02745098039, green: 0.368627451, blue: 0.3294117647, alpha: 1)
+        let primary = #colorLiteral(red: 0.1019607843, green: 0.737254902, blue: 0.6117647059, alpha: 1)
+        let primaryDark = #colorLiteral(red: 0.0862745098, green: 0.6274509804, blue: 0.5215686275, alpha: 1)
         
         
         dialogController.buttonStyle = { (button,height,position) in
@@ -291,14 +300,7 @@ class ViewController: UIViewController {
             button.layer.masksToBounds = true
             button.layer.borderColor = self.primaryColor.cgColor
             button.layer.borderColor = primary.cgColor
-            
-            if position == 4 {
-                button.setTitleColor(UIColor.white, for: .highlighted)
-                button.setBackgroundImage(UIImage.imageWithColor(#colorLiteral(red: 1, green: 0.3005838394, blue: 0.2565174997, alpha: 1)), for: .highlighted)
-                button.setBackgroundImage(nil , for: .normal)
-                button.setTitleColor(#colorLiteral(red: 1, green: 0.3005838394, blue: 0.2565174997, alpha: 1), for: .normal)
-                button.layer.borderColor = #colorLiteral(red: 1, green: 0.3005838394, blue: 0.2565174997, alpha: 1).cgColor
-            }
+
         }
         
         dialogController.cancelEnabled = true
@@ -363,6 +365,24 @@ class ViewController: UIViewController {
     }
     
     var items: [String] = ["Account 1","Account 2","Account 3","Account 4","Account 5"]
+    
+    func handlerForIndex(_ index: Int)->ActionHandler{
+        switch index{
+        case 0:
+            return { dialog in
+                print("action for index 0")
+            }
+        case 1:
+            return { dialog in
+                print("action for index 1")
+            }
+        default:
+            return {dialog in
+                print("default action")
+            }
+        }
+        
+    }
     
 }
 
