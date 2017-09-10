@@ -154,6 +154,14 @@ open class AZDialogViewController: UIViewController{
     
     open fileprivate(set) lazy var container: UIView = UIView()
     
+    open var dialogView: UIView? {
+        return baseView
+    }
+    
+    open var imageHolder: UIView {
+        return imageViewHolder
+    }
+    
     //MARK: - Public
     
     /// Show separator
