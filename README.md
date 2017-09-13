@@ -14,10 +14,16 @@ A highly customizable alert dialog controller that mimics Snapchat's alert dialo
 ## Installation
 
 
-### Cocoa Pods:
+### CocoaPods:
 
-```bash
+```ruby
 pod 'AZDialogView'
+```
+
+### Carthage:
+
+```ruby
+github "Minitour/AZDialogViewController"
 ```
 
 ### Manual:
