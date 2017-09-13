@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "AZDialogView"
-  s.version      = "1.1.4"
+  s.version      = "1.1.5"
   s.summary      = "A highly customizable alert dialog controller that mimics Snapchat's alert dialog."
   s.homepage     = "https://github.com/Minitour/AZDialogViewController"
   s.license      = "MIT"
