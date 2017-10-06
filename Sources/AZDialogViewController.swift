@@ -122,15 +122,22 @@ open class AZDialogViewController: UIViewController{
     
     // Helper to get the real device width
     fileprivate var deviceWidth: CGFloat {
-        let realValue = view.bounds.width < view.bounds.height ? view.bounds.width : view.bounds.height
-        return realValue > 414 ? realValue / 2 : realValue
+        let realValue = (view.bounds.width < view.bounds.height ? view.bounds.width : view.bounds.height)
+        let value = (realValue > 414 ? realValue / 2 : realValue)
+        return value
     }
     
     // Helper to get the real device height
     fileprivate var deviceHeight: CGFloat {
-        let realValue = view.bounds.width < view.bounds.height ? view.bounds.height : view.bounds.width
-        return realValue > 736 ? realValue / 2 : realValue
+        let safeAreaRemoval = parentSafeArea.sum
+        let realValue = (view.bounds.width < view.bounds.height ? view.bounds.height : view.bounds.width) - safeAreaRemoval
+        let value = (realValue > 736 ? realValue / 2 : realValue)
+        print(realValue)
+        return value
     }
+
+    //used only if device is iPhone X
+    fileprivate var parentSafeArea: UIEdgeInsets = .zero
     
     //MARK: - Getters
     
@@ -488,6 +495,10 @@ open class AZDialogViewController: UIViewController{
     ///
     /// - Parameter controller: The View controller in which you wish to present the dialog.
     open func show(in controller: UIViewController){
+        if #available(iOS 11.0, *) {
+            parentSafeArea = controller.view.safeAreaInsets
+        }
+        
         controller.present(self, animated: false, completion: nil)
     }
     
@@ -513,6 +524,7 @@ open class AZDialogViewController: UIViewController{
             super.dismiss(animated: false, completion: completion)
         }
     }
+
     
     /// Creates the view that the controller manages.
     override open func loadView() {
@@ -1127,6 +1139,12 @@ fileprivate class BaseView: UIView{
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         lastLocation = self.center
         super.touchesBegan(touches, with: event)
+    }
+}
+
+fileprivate extension UIEdgeInsets{
+    var sum: CGFloat {
+        return top + right + bottom + left
     }
 }
 
