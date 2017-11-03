@@ -175,7 +175,7 @@ open class AZDialogViewController: UIViewController{
     open var showSeparator = true
     
     /// Separator Color
-    open var separatorColor: UIColor = UIColor(colorLiteralRed: 208/255, green: 211/255, blue: 214/255, alpha: 1){
+    open var separatorColor: UIColor = UIColor(red: 208.0/255.0, green: 211.0/255.0, blue: 214.0/255.0, alpha: 1.0){
         didSet{
             separatorView?.backgroundColor = separatorColor
         }
@@ -212,7 +212,7 @@ open class AZDialogViewController: UIViewController{
     open var dismissDirection: AZDialogDismissDirection = .both
     
     /// Background alpha. default is 0.2
-    open var backgroundAlpha: Float = 0.2
+    open var backgroundAlpha: CGFloat = 0.2
     
     /// Animation duration.
     open var animationDuration: TimeInterval = 0.2
@@ -630,7 +630,7 @@ open class AZDialogViewController: UIViewController{
                 if let `self` = self {
                     self.baseView.center = self.view.center
                     self.baseView.center.y = self.baseView.center.y + self.contentOffset
-                    let backgroundColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: self.backgroundAlpha)
+                    let backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: self.backgroundAlpha)
                     self.view.backgroundColor = backgroundColor
                 }
             })
@@ -692,7 +692,7 @@ open class AZDialogViewController: UIViewController{
     /// Selector method - used to handle the dragging.
     ///
     /// - Parameter sender: The Gesture Recognizer.
-    internal func handlePanGesture(_ sender: UIPanGestureRecognizer){
+    @objc internal func handlePanGesture(_ sender: UIPanGestureRecognizer){
         
         //if panning is disabled return
         if !allowDragGesture{
@@ -812,7 +812,7 @@ open class AZDialogViewController: UIViewController{
     /// Selector method - used to handle view touch.
     ///
     /// - Parameter sender: The Gesture Recognizer.
-    internal func handleTapGesture(_ sender: UITapGestureRecognizer){
+ @objc internal func handleTapGesture(_ sender: UITapGestureRecognizer){
         if sender.view is BaseView || sender.view == container{
             return
         }
@@ -824,27 +824,28 @@ open class AZDialogViewController: UIViewController{
     /// Selector method - used when cancel button is clicked.
     ///
     /// - Parameter sender: The cancel button.
-    internal func cancelAction(_ sender: UIButton){
+    @objc internal func cancelAction(_ sender: UIButton){
         dismiss()
     }
     
     /// Selector method - used when left tool item button is clicked.
     ///
     /// - Parameter sender: The left tool button.
-    internal func handleLeftTool(_ sender: UIButton){
+    @objc internal func handleLeftTool(_ sender: UIButton){
         leftToolAction?(sender)
     }
     
     /// Selector method - used when right tool item button is clicked.
     ///
     /// - Parameter sender: The right tool button.
-    internal func handleRightTool(_ sender: UIButton){
+    @objc internal func handleRightTool(_ sender: UIButton){
         rightToolAction?(sender)
     }
 
     /// Selector method - used when one of the action buttons are clicked.
     ///
     /// - Parameter sender: Action Button
+    @objc
     internal func handleAction(_ sender: UIButton){
         (actions[sender.tag]!.handler)?(self)
     }
@@ -968,7 +969,7 @@ open class AZDialogViewController: UIViewController{
         let heightAnchor = button.heightAnchor.constraint(equalToConstant: buttonHeight)
         
         if actions.count == 1, i == 0 {
-            heightAnchor.priority = 999
+            heightAnchor.priority = UILayoutPriority(rawValue: 999)
         }
         
         heightAnchor.isActive = true
