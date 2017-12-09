@@ -120,6 +120,7 @@ open class AZDialogViewController: UIViewController{
         }
     }
     
+    
     // Helper to get the real device width
     fileprivate var deviceWidth: CGFloat {
         let realValue = (view.bounds.width < view.bounds.height ? view.bounds.width : view.bounds.height)
@@ -230,6 +231,27 @@ open class AZDialogViewController: UIViewController{
                     baseView.center = CGPoint(x: center.x ,y: center.y + offset)
                 }
             }
+        }
+    }
+    
+    /// Change the color of titleLabel
+    open var titleColor: UIColor? {
+        didSet {
+            titleLabel?.textColor = titleColor
+        }
+    }
+    
+    /// Change the color of messageLabel
+    open var messageColor: UIColor? {
+        didSet {
+            messageLabel?.textColor = messageColor
+        }
+    }
+    
+    /// Change the color of alert container
+    open var alertBackgroundColor: UIColor? {
+        didSet {
+            baseView?.backgroundColor = alertBackgroundColor
         }
     }
     
@@ -613,7 +635,7 @@ open class AZDialogViewController: UIViewController{
         baseView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(AZDialogViewController.handlePanGesture(_:))))
         
         baseView.layer.cornerRadius = 15
-        baseView.layer.backgroundColor = UIColor.white.cgColor
+        baseView.layer.backgroundColor = alertBackgroundColor?.cgColor ?? UIColor.white.cgColor
         baseView.isHidden = true
         baseView.lastLocation = self.view.center
         baseView.lastLocation.y = baseView.lastLocation.y + contentOffset
@@ -907,6 +929,9 @@ open class AZDialogViewController: UIViewController{
         titleLabel.font = titleFont
         titleLabel.textAlignment = .center
         titleLabel.widthAnchor.constraint(lessThanOrEqualTo: messageLabel.widthAnchor, multiplier: 1.0).isActive = true
+        if let titleColor = titleColor {
+            titleLabel.textColor = titleColor
+        }
     }
     
     /// Setup Seperator Line
@@ -926,6 +951,9 @@ open class AZDialogViewController: UIViewController{
         messageLabel.font = labelFont
         messageLabel.text = mMessage
         messageLabel.textAlignment = .center
+        if let messageColor = messageColor {
+            messageLabel.textColor = messageColor
+        }
     }
     
     /// Setup Custom View
