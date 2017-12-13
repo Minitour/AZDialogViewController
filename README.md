@@ -34,20 +34,51 @@ Simply drag and drop the ```Sources``` folder to your project.
 
 Create an instance of AZDialogViewController:
 ```swift
+//init with optional parameters
 let dialog = AZDialogViewController(title: "Antonio Zaitoun", message: "minitour")
 ```
 
 #### Customize:
 ```swift
+//set the title color
+dialog.titleColor = .black
+
+//set the message color
+dialog.messageColor = .black
+
+//set the dialog background color
+dialog.alertBackgroundColor = .white
+
+//set the gesture dismiss direction
 dialog.dismissDirection = .bottom
 
+//allow dismiss by touching the background
 dialog.dismissWithOutsideTouch = true
 
+//show seperator under the title
 dialog.showSeparator = false
 
+//set the seperator color
 dialog.separatorColor = UIColor.blue
 
+//enable/disable drag
 dialog.allowDragGesture = false
+
+//enable rubber (bounce) effect
+dialog.rubberEnabled = true
+
+//set dialog image
+dialog.image = UIImage(named: "icon")
+
+//enable/disable backgroud blur
+dialog.blurBackground = true
+
+//set the background blur style
+dialog.blurEffectStyle = .dark
+
+//set the dialog offset (from center)
+dialog.contentOffset = self.view.frame.height / 2.0 - dialog.estimatedHeight / 2.0 - 16.0
+
 ```
 
 #### Add Actions:
@@ -118,6 +149,14 @@ dialog.buttonStyle = { (button,height,position) in
      button.setTitleColor(self.primaryColor, for: .normal)
      button.layer.masksToBounds = true
      button.layer.borderColor = self.primaryColor.cgColor
+}
+```
+
+#### Use custom UIButton sub-class:
+```swift
+dialog.buttonInit = { index in
+    //set a custom button only for the first index
+    return index == 0 ? HighlightableButton() : nil
 }
 ```
 

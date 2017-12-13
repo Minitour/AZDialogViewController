@@ -174,7 +174,8 @@ class ViewController: UIViewController {
             }
         }
 
-        dialogController.blurEffectStyle = .light
+        dialogController.blurBackground = true
+        dialogController.blurEffectStyle = .dark
 
         dialogController.rightToolStyle = { (button) in
             button.setImage(#imageLiteral(resourceName: "share"), for: [])
