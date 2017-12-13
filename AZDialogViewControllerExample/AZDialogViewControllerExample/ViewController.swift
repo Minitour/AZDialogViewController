@@ -172,10 +172,10 @@ class ViewController: UIViewController {
                 button.setImage(image, for: [])
                 button.imageView?.contentMode = .scaleAspectFit
             }
-            
-            
         }
-        
+
+        dialogController.blurEffectStyle = .light
+
         dialogController.rightToolStyle = { (button) in
             button.setImage(#imageLiteral(resourceName: "share"), for: [])
             button.tintColor = .lightGray
@@ -302,6 +302,10 @@ class ViewController: UIViewController {
             button.layer.borderColor = primary.cgColor
 
         }
+
+        dialogController.buttonInit = { index in
+            return HighlightableButton()
+        }
         
         dialogController.cancelEnabled = true
         dialogController.cancelButtonStyle = { (button, height) in
@@ -309,6 +313,7 @@ class ViewController: UIViewController {
             button.setTitle("CANCEL", for: [])
             return true
         }
+
         
         dialogController.addAction(AZDialogAction(title: "Mute", handler: { (dialog) -> (Void) in
             dialog.dismiss()
@@ -427,4 +432,36 @@ extension UIImage {
         return image
     }
 }
+
+class HighlightableButton: UIButton{
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setup()
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        setup()
+    }
+
+    func setup() {
+        backgroundColor = #colorLiteral(red: 0.1019607843, green: 0.737254902, blue: 0.6117647059, alpha: 1)
+        layer.cornerRadius = 5
+        layer.masksToBounds = true
+    }
+
+    override var isHighlighted: Bool{
+        set{
+            UIView.animate(withDuration: 0.1) { [weak self] in
+                self?.alpha = newValue ? 0.5 : 1
+                self?.transform = newValue ? CGAffineTransform(scaleX: 0.95, y: 0.95) : .identity
+            }
+            super.isHighlighted = newValue
+        }get{
+            return super.isHighlighted
+        }
+    }
+}
+
 

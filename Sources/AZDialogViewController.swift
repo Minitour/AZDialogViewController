@@ -133,7 +133,6 @@ open class AZDialogViewController: UIViewController{
         let safeAreaRemoval = parentSafeArea.sum
         let realValue = (view.bounds.width < view.bounds.height ? view.bounds.height : view.bounds.width) - safeAreaRemoval
         let value = (realValue > 736 ? realValue / 2 : realValue)
-        print(realValue)
         return value
     }
 
@@ -161,6 +160,8 @@ open class AZDialogViewController: UIViewController{
     open fileprivate(set) var fontNameBold: String = "Avenir-Black"
     
     open fileprivate(set) lazy var container: UIView = UIView()
+
+    open fileprivate(set) lazy var blurView: UIVisualEffectView = UIVisualEffectView()
     
     open var dialogView: UIView? {
         return baseView
@@ -171,7 +172,11 @@ open class AZDialogViewController: UIViewController{
     }
     
     //MARK: - Public
-    
+
+    open var blurBackground: Bool = true
+
+    open var blurEffectStyle: UIBlurEffectStyle = .dark
+
     /// Show separator
     open var showSeparator = true
     
@@ -190,6 +195,8 @@ open class AZDialogViewController: UIViewController{
     
     /// Button style closure, called when setting up an action. Where the 1st parameter is a reference to the button, the 2nd is the height of the button and the 3rd is the position of the button (index).
     open var buttonStyle: ((UIButton,_ height: CGFloat,_ position: Int)->Void)?
+
+    open var buttonInit: ((_ index: Int) -> UIButton?)?
     
     /// Left Tool Style, is the style (closure) that is called when setting up the left tool item. Make sure to return true to show the item.
     open var leftToolStyle: ((UIButton)->Bool)?
@@ -537,7 +544,12 @@ open class AZDialogViewController: UIViewController{
             UIView.animate(withDuration: animationDuration, animations: { [weak self] () -> Void in
                 if let `self` = self,let baseView = self.baseView,let view = self.view{
                     baseView.center.y = view.bounds.maxY + baseView.bounds.midY
-                    view.backgroundColor = .clear
+                    if !self.blurBackground {
+                        view.backgroundColor = .clear
+                    }else {
+                        self.blurView.fadeOutEffect(withDuration: self.animationDuration)
+                    }
+
                 }
                 }, completion: { (complete) -> Void in
                     super.dismiss(animated: false, completion: completion)
@@ -648,12 +660,24 @@ open class AZDialogViewController: UIViewController{
             didInitAnimation = true
             baseView.center.y = self.view.bounds.maxY + baseView.bounds.midY
             baseView.isHidden = false
+
+            if blurBackground {
+                blurView.frame = self.view.frame
+                blurView.autoresizingMask = [.flexibleWidth,.flexibleHeight]
+                self.view.insertSubview(blurView, belowSubview: baseView)
+            }
+
             UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 6.0, options: [], animations: { [weak self]() -> Void in
                 if let `self` = self {
                     self.baseView.center = self.view.center
                     self.baseView.center.y = self.baseView.center.y + self.contentOffset
-                    let backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: self.backgroundAlpha)
-                    self.view.backgroundColor = backgroundColor
+                    if self.blurBackground {
+                        self.blurView.fadeInEffect(self.blurEffectStyle, withDuration: self.animationDuration)
+                    } else {
+                        let backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: self.backgroundAlpha)
+                        self.view.backgroundColor = backgroundColor
+                    }
+
                 }
             })
         }
@@ -772,12 +796,19 @@ open class AZDialogViewController: UIViewController{
         
         //create `dismiss in direction` function.
         let dismissInDirection:(CGPoint)->Void = { [weak self] (finalPoint) in
-            UIView.animate(withDuration: animationDuration, animations: { () -> Void in
-                self?.baseView.center = finalPoint
-                self?.view.backgroundColor = .clear
-            }, completion: { (complete) -> Void in
-                self?.dismiss(animated: false, completion: nil)
-            })
+            if let `self` = self {
+                UIView.animate(withDuration: animationDuration, animations: { () -> Void in
+                    self.baseView.center = finalPoint
+                    self.view.backgroundColor = .clear
+
+                    if self.blurBackground {
+                        self.blurView.fadeOutEffect(withDuration: self.animationDuration)
+                    }
+
+                }, completion: { (complete) -> Void in
+                    self.dismiss(animated: false, completion: nil)
+                })
+            }
         }
         
         //calculate final point, default is center.
@@ -803,7 +834,7 @@ open class AZDialogViewController: UIViewController{
                 if velocity.y > 0{
                     //dismiss downward
                     if dismissDirection == .bottom || dismissDirection == .both {
-                        finalPoint.y = view.frame.maxY + baseView.bounds.midY
+                        finalPoint.y = view.frame.maxY + baseView.bounds.midY + (imageView?.frame.height ?? 0.0)
                         dismissInDirection(finalPoint)
                     }else{
                         returnToCenter(finalPoint,true)
@@ -982,29 +1013,39 @@ open class AZDialogViewController: UIViewController{
     /// - Parameters:
     ///   - index: The index for the current button.
     ///
-    fileprivate func setupButton(index i:Int)->UIButton{
+    fileprivate func setupButton(index i:Int) -> UIButton{
         if buttonHeight == 0 {buttonHeight = CGFloat(Int(deviceHeight * 0.07))}
-        let button = UIButton(type: .custom)
+
+        let finButton: UIButton
+
+        if let button: UIButton = self.buttonInit?(i) {
+            finButton = button
+        }else {
+            let button = UIButton(type: .custom)
+            button.setTitleColor(button.tintColor, for: [])
+            button.layer.borderColor = button.tintColor.cgColor
+            button.layer.borderWidth = 1
+            button.layer.cornerRadius = buttonHeight/2
+            finButton = button
+        }
+
         let action = actions[i]
-        button.isExclusiveTouch = true
-        button.setTitle(action?.title, for: [])
-        button.setTitleColor(button.tintColor, for: [])
-        button.layer.borderColor = button.tintColor.cgColor
-        button.layer.borderWidth = 1
-        button.layer.cornerRadius = buttonHeight/2
-        button.titleLabel?.font = UIFont(name: fontName, size: buttonHeight * 0.35)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        let heightAnchor = button.heightAnchor.constraint(equalToConstant: buttonHeight)
+        finButton.setTitle(action?.title, for: [])
+        finButton.isExclusiveTouch = true
+
+        finButton.titleLabel?.font = UIFont(name: fontName, size: buttonHeight * 0.35)
+        finButton.translatesAutoresizingMaskIntoConstraints = false
+        let heightAnchor = finButton.heightAnchor.constraint(equalToConstant: buttonHeight)
         
         if actions.count == 1, i == 0 {
             heightAnchor.priority = UILayoutPriority(rawValue: 999)
         }
         
         heightAnchor.isActive = true
-        self.buttonStyle?(button,buttonHeight,i)
-        button.tag = i
-        button.addTarget(self, action: #selector(AZDialogViewController.handleAction(_:)), for: .touchUpInside)
-        return button
+        self.buttonStyle?(finButton,buttonHeight,i)
+        finButton.tag = i
+        finButton.addTarget(self, action: #selector(AZDialogViewController.handleAction(_:)), for: .touchUpInside)
+        return finButton
     }
     
     /// Setup Cancel Button
@@ -1175,5 +1216,44 @@ fileprivate extension UIEdgeInsets{
     var sum: CGFloat {
         return top + right + bottom + left
     }
+}
+
+fileprivate extension UIVisualEffectView {
+
+    func fadeInEffect(_ style:UIBlurEffectStyle = .light, withDuration duration: TimeInterval = 1.0) {
+        if #available(iOS 10.0, *) {
+            let animator = UIViewPropertyAnimator(duration: duration, curve: .linear) {
+                self.effect = UIBlurEffect(style: style)
+            }
+
+            animator.startAnimation()
+        }else {
+            // Fallback on earlier versions
+            UIView.animate(withDuration: duration) {
+                self.effect = UIBlurEffect(style: style)
+            }
+        }
+    }
+
+    func fadeOutEffect(withDuration duration: TimeInterval = 1.0, completion: (()->Void)? = nil) {
+        if #available(iOS 10.0, *) {
+            let animator = UIViewPropertyAnimator(duration: duration, curve: .linear) {
+                self.effect = UIVisualEffect()
+            }
+
+            animator.startAnimation()
+            animator.addCompletion { (position) in
+                completion?()
+            }
+            //animator.fractionComplete = 1
+        }else {
+            UIView.animate(withDuration: duration, animations: {
+                self.alpha = 0.0
+            }, completion: { (didComplete) in
+                completion?()
+            })
+        }
+    }
+
 }
 
