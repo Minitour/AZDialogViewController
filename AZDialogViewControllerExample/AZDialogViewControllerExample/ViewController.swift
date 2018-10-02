@@ -71,7 +71,7 @@ class ViewController: UIViewController {
         let dialog = AZDialogViewController(title: "Loading...", message: "Logging you in, please wait")
         
         let container = dialog.container
-        let indicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)
+        let indicator = UIActivityIndicatorView(style: .gray)
         dialog.container.addSubview(indicator)
         indicator.translatesAutoresizingMaskIntoConstraints = false
         indicator.centerXAnchor.constraint(equalTo: container.centerXAnchor).isActive = true

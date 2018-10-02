@@ -10,6 +10,7 @@ import UIKit
 
 public typealias ActionHandler = ((AZDialogViewController)->(Void))
 
+@objc
 open class AZDialogViewController: UIViewController{
 
     //MARK: - Private Properties
@@ -140,47 +141,64 @@ open class AZDialogViewController: UIViewController{
     fileprivate var parentSafeArea: UIEdgeInsets = .zero
     
     //MARK: - Getters
-    
+
+    @objc
     open fileprivate(set) var spacing: CGFloat = -1.0
-    
+
+    @objc
     open fileprivate(set) var stackSpacing: CGFloat = 0.0
-    
+
+    @objc
     open fileprivate(set) var sideSpacing: CGFloat = 20.0
-    
+
+    @objc
     open fileprivate(set) var buttonHeight: CGFloat = 0.0
-    
+
+    @objc
     open fileprivate(set) var cancelButtonHeight:CGFloat = 0.0
-    
+
+    @objc
     open fileprivate(set) var titleFontSize: CGFloat = 0.0
-    
+
+    @objc
     open fileprivate(set) var messageFontSize: CGFloat = 0.0
-    
+
+    @objc
     open fileprivate(set) var fontName: String = "Avenir-Light"
-    
+
+    @objc
     open fileprivate(set) var fontNameBold: String = "Avenir-Black"
-    
+
+    @objc
     open fileprivate(set) lazy var container: UIView = UIView()
 
+    @objc
     open fileprivate(set) lazy var blurView: UIVisualEffectView = UIVisualEffectView()
-    
+
+    @objc
     open var dialogView: UIView? {
         return baseView
     }
-    
+
+    @objc
     open var imageHolder: UIView {
         return imageViewHolder
     }
     
     //MARK: - Public
 
+    @objc
     open var blurBackground: Bool = true
 
+    @objc
     open var blurEffectStyle: UIBlurEffect.Style = .dark
 
     /// Show separator
+    @objc
     open var showSeparator = true
     
     /// Separator Color
+    @objc
     open var separatorColor: UIColor = UIColor(red: 208.0/255.0, green: 211.0/255.0, blue: 214.0/255.0, alpha: 1.0){
         didSet{
             separatorView?.backgroundColor = separatorColor
@@ -188,44 +206,58 @@ open class AZDialogViewController: UIViewController{
     }
     
     /// Allow dismiss when touching outside of the dialog (touching the background)
+    @objc
     open var dismissWithOutsideTouch = true
     
     /// Allow users to drag the dialog
+    @objc
     open var allowDragGesture = true
     
     /// Button style closure, called when setting up an action. Where the 1st parameter is a reference to the button, the 2nd is the height of the button and the 3rd is the position of the button (index).
+    @objc
     open var buttonStyle: ((UIButton,_ height: CGFloat,_ position: Int)->Void)?
 
+    @objc
     open var buttonInit: ((_ index: Int) -> UIButton?)?
     
     /// Left Tool Style, is the style (closure) that is called when setting up the left tool item. Make sure to return true to show the item.
+    @objc
     open var leftToolStyle: ((UIButton)->Bool)?
     
     /// Right Tool Style, is the style (closure) that is called when setting up the right tool item. Make sure to return true to show the item.
+    @objc
     open var rightToolStyle: ((UIButton)->Bool)?
     
     /// The action that is triggered when tool is clicked.
+    @objc
     open var leftToolAction: ((UIButton)->Void)?
     
     /// The action that is triggered when tool is clicked.
+    @objc
     open var rightToolAction: ((UIButton)->Void)?
     
     /// The cancel button style. where @UIButton is the refrence to the button, @CGFloat is the height of the button and @Bool is the value you return where true would show the button and false won't.
+    @objc
     open var cancelButtonStyle: ((UIButton,CGFloat)->Bool)?
     
     /// Image handler, used when setting up an image using some sort of process.
+    @objc
     open var imageHandler: ((UIImageView)->Bool)?
     
     /// Dismiss direction [top,bottom,both,none]
+    @objc
     open var dismissDirection: AZDialogDismissDirection = .both
     
     /// Background alpha. default is 0.2
+    @objc
     open var backgroundAlpha: CGFloat = 0.2
     
     /// Animation duration.
+    @objc
     open var animationDuration: TimeInterval = 0.2
     
     /// The offset of the dialog.
+    @objc
     open var contentOffset: CGFloat = 0.0 {
         didSet{
             if let baseView = self.baseView{
@@ -242,6 +274,7 @@ open class AZDialogViewController: UIViewController{
     }
     
     /// Change the color of titleLabel
+    @objc
     open var titleColor: UIColor? {
         didSet {
             titleLabel?.textColor = titleColor
@@ -249,6 +282,7 @@ open class AZDialogViewController: UIViewController{
     }
     
     /// Change the color of messageLabel
+    @objc
     open var messageColor: UIColor? {
         didSet {
             messageLabel?.textColor = messageColor
@@ -256,6 +290,7 @@ open class AZDialogViewController: UIViewController{
     }
     
     /// Change the color of alert container
+    @objc
     open var alertBackgroundColor: UIColor? {
         didSet {
             baseView?.backgroundColor = alertBackgroundColor
@@ -263,6 +298,7 @@ open class AZDialogViewController: UIViewController{
     }
     
     /// Change the title of the dialog
+    @objc
     open override var title: String?{
         get{
             return mTitle
@@ -272,6 +308,7 @@ open class AZDialogViewController: UIViewController{
     }
     
     /// Change the message of the dialog
+    @objc
     open var message: String? {
         get{
             return mMessage
@@ -281,6 +318,7 @@ open class AZDialogViewController: UIViewController{
     }
     
     /// Change the height of the custom view
+    @objc
     open var customViewSizeRatio: CGFloat = 0.0{
         didSet{
             customViewHeightAnchor =
@@ -295,6 +333,7 @@ open class AZDialogViewController: UIViewController{
     }
     
     /// Change the text of the cancel button
+    @objc
     open var cancelTitle: String = "CANCEL"{
         didSet{
             cancelButton?.setTitle(cancelTitle, for: [])
@@ -302,6 +341,7 @@ open class AZDialogViewController: UIViewController{
     }
     
     /// Use this to hide/show the cancel button
+    @objc
     open var cancelEnabled: Bool = false{
         willSet{
             //design the button if possible
@@ -343,6 +383,7 @@ open class AZDialogViewController: UIViewController{
     }
     
     /// The dialog's image.
+    @objc
     open var image: UIImage?{
         get{
             return imageView?.image
@@ -374,9 +415,11 @@ open class AZDialogViewController: UIViewController{
     }
     
     /// Enables the rubber effect you would see on a scroll view.
+    @objc
     open var rubberEnabled: Bool = true
     
     /// Returns the estimated dialog frame height.
+    @objc
     open var estimatedHeight: CGFloat {
         
         if isViewLoaded{
@@ -468,6 +511,7 @@ open class AZDialogViewController: UIViewController{
     /// Add an action button to the dialog. Make sure you add the actions before calling the .show() function.
     ///
     /// - Parameter action: The AZDialogAction.
+    @objc
     open func addAction(_ action: AZDialogAction){
         actions.append(action)
         
@@ -483,6 +527,7 @@ open class AZDialogViewController: UIViewController{
     /// Remove a button at a certain index.
     ///
     /// - Parameter index: The index at which you would like to remove the action.
+    @objc
     open func removeAction(at index: Int){
         if actions.count <= index{
             return
@@ -510,6 +555,7 @@ open class AZDialogViewController: UIViewController{
     }
     
     /// Remove all actions
+    @objc
     open func removeAllActions(){
         actions.removeAll()
         
@@ -523,6 +569,7 @@ open class AZDialogViewController: UIViewController{
     /// The primary fuction to present the dialog.
     ///
     /// - Parameter controller: The View controller in which you wish to present the dialog.
+    @objc
     open func show(in controller: UIViewController){
         if #available(iOS 11.0, *) {
             parentSafeArea = controller.view.safeAreaInsets
@@ -1184,18 +1231,27 @@ open class AZDialogViewController: UIViewController{
     
 }
 
-public enum AZDialogDismissDirection{
+@objc
+public enum AZDialogDismissDirection: Int {
     case top
     case bottom
     case both
     case none
 }
 
-open class AZDialogAction{
+@objc
+open class AZDialogAction: NSObject{
+
+    @objc
     open var title: String?
+
+    @objc
     open var isEnabled: Bool = true
+
+    @objc
     open var handler: ActionHandler?
-    
+
+    @objc
     public init(title: String,handler: ActionHandler? = nil){
         self.title = title
         self.handler = handler
