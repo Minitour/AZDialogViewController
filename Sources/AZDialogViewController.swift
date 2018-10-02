@@ -93,7 +93,7 @@ open class AZDialogViewController: UIViewController{
         didSet{
             if titleLabel != nil,generalStackView != nil {
                 titleLabel.text = mTitle
-                if mTitle == nil || mTitle?.characters.count == 0{
+                if mTitle == nil || mTitle?.count == 0{
                     titleLabel.isHidden = true
                     separatorView.isHidden = true
                 }else{
@@ -110,7 +110,7 @@ open class AZDialogViewController: UIViewController{
         didSet{
             if messageLabel != nil,generalStackView != nil {
                 messageLabel.text = mMessage
-                if mMessage == nil || mMessage?.characters.count == 0{
+                if mMessage == nil || mMessage?.count == 0{
                     messageLabel.isHidden = true
                 }else{
                     messageLabel.isHidden = false
@@ -132,7 +132,7 @@ open class AZDialogViewController: UIViewController{
     fileprivate var deviceHeight: CGFloat {
         let safeAreaRemoval = parentSafeArea.sum
         let realValue = (view.bounds.width < view.bounds.height ? view.bounds.height : view.bounds.width) - safeAreaRemoval
-        let value = (realValue > 736 ? realValue / 2 : realValue)
+        let value = ((realValue > 736 && realValue < 818) ? realValue / 2 : realValue)
         return value
     }
 
@@ -175,7 +175,7 @@ open class AZDialogViewController: UIViewController{
 
     open var blurBackground: Bool = true
 
-    open var blurEffectStyle: UIBlurEffectStyle = .dark
+    open var blurEffectStyle: UIBlurEffect.Style = .dark
 
     /// Show separator
     open var showSeparator = true
@@ -1220,7 +1220,7 @@ fileprivate extension UIEdgeInsets{
 
 fileprivate extension UIVisualEffectView {
 
-    func fadeInEffect(_ style:UIBlurEffectStyle = .light, withDuration duration: TimeInterval = 1.0) {
+    func fadeInEffect(_ style:UIBlurEffect.Style = .light, withDuration duration: TimeInterval = 1.0) {
         if #available(iOS 10.0, *) {
             let animator = UIViewPropertyAnimator(duration: duration, curve: .linear) {
                 self.effect = UIBlurEffect(style: style)
