@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="XZv-hM-Klq">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12089"/>
-        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
-        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
-        <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -55,7 +52,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" tag="3" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3YO-bR-uly">
-                                <rect key="frame" x="97" y="362" width="180" height="30"/>
+                                <rect key="frame" x="97.5" y="362.5" width="180" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="180" id="PXu-vC-gSv"/>
                                 </constraints>
@@ -77,10 +74,11 @@
                             <constraint firstItem="46Q-bz-5vc" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="r3s-9s-v1m"/>
                         </constraints>
                     </view>
+                    <navigationItem key="navigationItem" id="wV2-iZ-0sl"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="136.80000000000001" y="138.98050974512745"/>
+            <point key="canvasLocation" x="1076" y="138.98050974512745"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="wVI-Lz-wSZ">
@@ -95,27 +93,27 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hLx-cl-ARl">
-                                <rect key="frame" x="32" y="237" width="311" height="192"/>
+                                <rect key="frame" x="32" y="237.5" width="311" height="192"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ort-1Y-R1l">
-                                        <rect key="frame" x="109" y="-50" width="93.5" height="93"/>
+                                        <rect key="frame" x="109" y="-50" width="93" height="93.5"/>
                                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="ort-1Y-R1l" secondAttribute="height" multiplier="1:1" id="NgU-c3-j7M"/>
                                         </constraints>
                                     </view>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="Uun-It-7X9">
-                                        <rect key="frame" x="8" y="51" width="295" height="133"/>
+                                        <rect key="frame" x="8" y="51.5" width="295" height="132.5"/>
                                         <subviews>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Lbn-uy-y5e">
-                                                <rect key="frame" x="27.5" y="0.0" width="240" height="132"/>
+                                                <rect key="frame" x="27.5" y="0.0" width="240" height="131.5"/>
                                                 <color key="backgroundColor" red="0.0" green="0.69491332769393921" blue="0.40852432227078822" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="s1V-GE-Q43">
-                                                <rect key="frame" x="27.5" y="132" width="240" height="1"/>
+                                                <rect key="frame" x="27.5" y="131.5" width="240" height="1"/>
                                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" constant="1" id="xcg-ba-Gyl"/>
@@ -150,7 +148,25 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="siW-fB-THV" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="981.60000000000002" y="138.98050974512745"/>
+            <point key="canvasLocation" x="1920.8" y="138.98050974512745"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="mPh-FF-rPK">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="XZv-hM-Klq" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="upM-gr-ex3">
+                        <rect key="frame" x="0.0" y="20" width="375" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="BYZ-38-t0r" kind="relationship" relationship="rootViewController" id="hDw-TS-Vgo"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="X5t-G0-RQA" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="136.80000000000001" y="138.98050974512745"/>
         </scene>
     </scenes>
 </document>

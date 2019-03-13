@@ -10,6 +10,33 @@ import UIKit
 
 public typealias ActionHandler = ((AZDialogViewController)->(Void))
 
+public struct DialogDefaults {
+
+    /// The spaving ratio between the items in the stack (vertically) in respect to the height of the device.
+    public static var spacingRatio: CGFloat = 0.012
+
+    /// The font size of the title in respect to the device height.
+    public static var titleFontSizeRatio: CGFloat = 0.0275
+
+    /// The font size of the message in respect to the device height.
+    public static var messageFontSizeRatio: CGFloat = 0.0225
+
+    /// The height of the seperator.
+    public static var seperatorHeight: CGFloat = 0.7
+
+    /// The width of the buttons in respect to the device width.
+    public static var buttonWidthRatio: CGFloat = 0.65
+
+    /// The height of the button in respect to the height of the device.
+    public static var buttonHeightRatio: CGFloat = 0.07
+
+    /// The height of the cancel button in respect to the height of the device.
+    public static var cancelButtonHeightRatio: CGFloat = 0.0449
+
+    /// The width ratio of the dialog view in respect to the width of the device.
+    public static var widthRatio: CGFloat = 0.75
+}
+
 @objc
 open class AZDialogViewController: UIViewController{
 
@@ -124,16 +151,21 @@ open class AZDialogViewController: UIViewController{
     
     // Helper to get the real device width
     fileprivate var deviceWidth: CGFloat {
+        let view = UIScreen.main
         let realValue = (view.bounds.width < view.bounds.height ? view.bounds.width : view.bounds.height)
-        let value = (realValue > 414 ? realValue / 2 : realValue)
+        //let value = (realValue > 414 ? realValue / 2 : realValue)
+        let value = UIDevice.current.userInterfaceIdiom == .pad ? realValue / 2 : realValue
         return value
     }
     
     // Helper to get the real device height
     fileprivate var deviceHeight: CGFloat {
+        let view = UIScreen.main
         let safeAreaRemoval = parentSafeArea.sum
         let realValue = (view.bounds.width < view.bounds.height ? view.bounds.height : view.bounds.width) - safeAreaRemoval
-        let value = ((realValue > 736 && realValue < 818) ? realValue / 2 : realValue)
+
+        //let value = ((realValue > 736 && realValue < 818) ? realValue / 2 : realValue)
+        let value = UIDevice.current.userInterfaceIdiom == .pad ? realValue / 2 : realValue
         return value
     }
 
@@ -423,7 +455,7 @@ open class AZDialogViewController: UIViewController{
     open var estimatedHeight: CGFloat {
         
         if isViewLoaded{
-            return baseView.frame.height
+            return baseView.bounds.height
         }
         
         func heightForView(_ text:String, font:UIFont, width:CGFloat) -> CGFloat{
@@ -450,7 +482,7 @@ open class AZDialogViewController: UIViewController{
         let showSeparator = self.showSeparator
         let mTitle = self.mTitle
         let mMessage = self.mMessage
-        let spacing = height * 0.012
+        let spacing = height * DialogDefaults.spacingRatio
         let sideSpacing: CGFloat = 20.0
         let showImage = image != nil
         let side: CGFloat = width / 8
@@ -458,23 +490,23 @@ open class AZDialogViewController: UIViewController{
         let imageHolderSize: CGFloat = showImage ? CGFloat(Int((width - 2 * side) / 3))  : 0
         let imageMultiplier:CGFloat = showImage ? 0.0 : 1.0
         
-        titleFontSize = height * 0.0269
+        titleFontSize = height * DialogDefaults.titleFontSizeRatio
         let titleFont = UIFont(name: fontNameBold, size: titleFontSize)
         let titleHeight:CGFloat = mTitle == nil ? 0.0 : heightForView(mTitle!, font: titleFont!, width: labelWidth)
         
-        let seperatorHeight: CGFloat = showSeparator ? 0.7 : 0.0
+        let seperatorHeight: CGFloat = showSeparator ? DialogDefaults.seperatorHeight : 0.0
         let seperatorMultiplier: CGFloat = seperatorHeight > 0.0 ? 1.0 : 0.0
         
-        messageFontSize = height * 0.0239
+        messageFontSize = height * DialogDefaults.messageFontSizeRatio
         let labelFont = UIFont(name: fontName, size: messageFontSize)!
         let messageLableHeight:CGFloat = mMessage == nil ? 0 : heightForView(mMessage!, font: labelFont, width: labelWidth)
         let messageLabelMultiplier: CGFloat = messageLableHeight > 0 ? 1.0 : 0.0
         
-        buttonHeight = CGFloat(Int(height * 0.07))
+        buttonHeight = CGFloat(Int(height * DialogDefaults.buttonHeightRatio))
         let stackViewSize: CGFloat = CGFloat(self.actions.count) * buttonHeight + CGFloat(self.actions.count-1) * (stackSpacing)
         let stackMultiplier:CGFloat = stackViewSize > 0 ? 1.0 : 0.0
         
-        cancelButtonHeight = height * 0.0449
+        cancelButtonHeight = height * DialogDefaults.cancelButtonHeightRatio
         let cancelMultiplier: CGFloat = cancelEnabled ? 1.0 : 0.0
         
         // Elaboration on spacingCalc:
@@ -498,7 +530,7 @@ open class AZDialogViewController: UIViewController{
         var baseViewHeight:CGFloat = 0.0
         
         baseViewHeight += spacingCalc
-        baseViewHeight += (2 * imageHolderSize/3)
+        baseViewHeight += (2 * imageHolderSize / 3)
         baseViewHeight += titleHeight
         baseViewHeight += seperatorHeight
         baseViewHeight += messageLableHeight
@@ -624,7 +656,7 @@ open class AZDialogViewController: UIViewController{
         leftToolItem = UIButton(type: .system)
         rightToolItem = UIButton(type: .system)
         
-        if spacing == -1 {spacing = deviceHeight * 0.012}
+        if spacing == -1 {spacing = deviceHeight * DialogDefaults.spacingRatio}
         let showImage = imageHandler?(imageView) ?? false
         
         // Disable translate auto resizing mask into constraints
@@ -714,7 +746,12 @@ open class AZDialogViewController: UIViewController{
                 self.view.insertSubview(blurView, belowSubview: baseView)
             }
 
-            UIView.animate(withDuration: animationDuration, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 6.0, options: [], animations: { [weak self]() -> Void in
+            UIView.animate(withDuration: animationDuration,
+                           delay: 0,
+                           usingSpringWithDamping: 1,
+                           initialSpringVelocity: 6.0,
+                           options: [],
+                           animations: { [weak self]() -> Void in
                 if let `self` = self {
                     self.baseView.center = self.view.center
                     self.baseView.center.y = self.baseView.center.y + self.contentOffset
@@ -998,7 +1035,7 @@ open class AZDialogViewController: UIViewController{
     /// Setup Title Label
     fileprivate func setupTitleLabel(){
         
-        if titleFontSize == 0 {titleFontSize = deviceHeight * 0.0275}
+        if titleFontSize == 0 { titleFontSize = deviceHeight * DialogDefaults.titleFontSizeRatio }
         let titleFont = UIFont(name: fontNameBold, size: titleFontSize)
         //let titleHeight:CGFloat = mTitle == nil ? 0 : heightForView(mTitle!, font: titleFont!, width: deviceWidth * 0.6)
         titleLabel.numberOfLines = 0
@@ -1014,7 +1051,7 @@ open class AZDialogViewController: UIViewController{
     
     /// Setup Seperator Line
     fileprivate func setupSeparator(){
-        let seperatorHeight: CGFloat = self.showSeparator ? 0.7 : 0.0
+        let seperatorHeight: CGFloat = self.showSeparator ? DialogDefaults.seperatorHeight : 0.0
         separatorView.backgroundColor = separatorColor
         separatorView.widthAnchor.constraint(equalTo: titleLabel.widthAnchor, multiplier: 1.0).isActive = true
         separatorView.heightAnchor.constraint(equalToConstant: seperatorHeight).isActive = true
@@ -1022,7 +1059,7 @@ open class AZDialogViewController: UIViewController{
     
     /// Setup Message Label
     fileprivate func setupMessageLabel(){
-        if messageFontSize == 0 {messageFontSize = deviceHeight * 0.0225}
+        if messageFontSize == 0 {messageFontSize = deviceHeight * DialogDefaults.messageFontSizeRatio}
         let labelFont = UIFont(name: fontName, size: messageFontSize)!
         messageLabel.numberOfLines = 0
         messageLabel.lineBreakMode = NSLineBreakMode.byWordWrapping
@@ -1047,7 +1084,7 @@ open class AZDialogViewController: UIViewController{
         buttonsStackView.alignment = .fill
         buttonsStackView.axis = .vertical
         buttonsStackView.spacing = stackSpacing
-        buttonsStackView.widthAnchor.constraint(equalTo: baseView.widthAnchor, multiplier: 0.65).isActive = true
+        buttonsStackView.widthAnchor.constraint(equalTo: baseView.widthAnchor, multiplier: DialogDefaults.buttonWidthRatio).isActive = true
         
         for i in 0 ..< actions.count{
             let button = setupButton(index: i)
@@ -1061,7 +1098,7 @@ open class AZDialogViewController: UIViewController{
     ///   - index: The index for the current button.
     ///
     fileprivate func setupButton(index i:Int) -> UIButton{
-        if buttonHeight == 0 {buttonHeight = CGFloat(Int(deviceHeight * 0.07))}
+        if buttonHeight == 0 {buttonHeight = CGFloat(Int(deviceHeight * DialogDefaults.buttonHeightRatio))}
 
         let finButton: UIButton
 
@@ -1097,7 +1134,7 @@ open class AZDialogViewController: UIViewController{
     
     /// Setup Cancel Button
     fileprivate func setupCancelButton(){
-        if cancelButtonHeight == 0 {cancelButtonHeight = deviceHeight * 0.0449}
+        if cancelButtonHeight == 0 {cancelButtonHeight = deviceHeight * DialogDefaults.cancelButtonHeightRatio}
         cancelButton.setTitle(cancelTitle, for: [])
         cancelButton.titleLabel?.font = UIFont(name: fontName, size: cancelButtonHeight * 0.433)
         let showCancelButton = (cancelButtonStyle?(cancelButton,cancelButtonHeight) ?? false) && cancelEnabled
@@ -1114,7 +1151,7 @@ open class AZDialogViewController: UIViewController{
     /// Setup BaseView
     fileprivate func setupBaseView(){
         self.baseView.isExclusiveTouch = true
-        baseView.widthAnchor.constraint(equalToConstant: deviceWidth * 0.75).isActive = true
+        baseView.widthAnchor.constraint(equalToConstant: deviceWidth * DialogDefaults.widthRatio).isActive = true
         baseView.centerXAnchor.constraint(equalTo: view.centerXAnchor,constant: 0).isActive = true
         baseViewCenterYConstraint =
             baseView.centerYAnchor.constraint(equalTo: view.centerYAnchor,constant: contentOffset)
@@ -1312,4 +1349,3 @@ fileprivate extension UIVisualEffectView {
     }
 
 }
-

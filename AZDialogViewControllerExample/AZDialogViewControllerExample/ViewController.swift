@@ -18,6 +18,7 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        DialogDefaults.widthRatio = 1
         // Do any additional setup after loading the view, typically from a nib.
     }
     
