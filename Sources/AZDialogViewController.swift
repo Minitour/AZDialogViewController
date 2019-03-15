@@ -171,6 +171,8 @@ open class AZDialogViewController: UIViewController{
 
     //used only if device is iPhone X
     fileprivate var parentSafeArea: UIEdgeInsets = .zero
+
+    fileprivate var onAppearCompletion: ((AZDialogViewController) -> Void)?
     
     //MARK: - Getters
 
@@ -200,6 +202,9 @@ open class AZDialogViewController: UIViewController{
 
     @objc
     open fileprivate(set) var fontNameBold: String = "Avenir-Black"
+
+    @objc
+    open fileprivate(set) var widthRatio: CGFloat = DialogDefaults.widthRatio
 
     @objc
     open fileprivate(set) lazy var container: UIView = UIView()
@@ -602,12 +607,12 @@ open class AZDialogViewController: UIViewController{
     ///
     /// - Parameter controller: The View controller in which you wish to present the dialog.
     @objc
-    open func show(in controller: UIViewController){
+    open func show(in controller: UIViewController, completion: ((AZDialogViewController)->Void)? = nil){
         if #available(iOS 11.0, *) {
             parentSafeArea = controller.view.safeAreaInsets
         }
-        
-        controller.present(self, animated: false, completion: nil)
+        onAppearCompletion = completion
+        controller.present(self, animated: false,completion: nil)
     }
     
     
@@ -761,8 +766,11 @@ open class AZDialogViewController: UIViewController{
                         let backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: self.backgroundAlpha)
                         self.view.backgroundColor = backgroundColor
                     }
-
                 }
+                // call apperance completion
+                guard let `self` = self, let onAppearCompletion = self.onAppearCompletion else { return }
+                onAppearCompletion(self)
+                self.onAppearCompletion = nil
             })
         }
     }
@@ -802,7 +810,8 @@ open class AZDialogViewController: UIViewController{
                      buttonsHeight: CGFloat = 0,
                      cancelButtonHeight: CGFloat = 0,
                      fontName: String = "AvenirNext-Medium",
-                     boldFontName: String = "AvenirNext-DemiBold"){
+                     boldFontName: String = "AvenirNext-DemiBold",
+                     widthRatio: CGFloat = DialogDefaults.widthRatio){
         self.init(nibName: nil, bundle: nil)
         
         mTitle = title
@@ -816,6 +825,7 @@ open class AZDialogViewController: UIViewController{
         self.cancelButtonHeight = cancelButtonHeight
         self.fontName = fontName
         self.fontNameBold = boldFontName
+        self.widthRatio = widthRatio
     }
     
     
@@ -1151,7 +1161,7 @@ open class AZDialogViewController: UIViewController{
     /// Setup BaseView
     fileprivate func setupBaseView(){
         self.baseView.isExclusiveTouch = true
-        baseView.widthAnchor.constraint(equalToConstant: deviceWidth * DialogDefaults.widthRatio).isActive = true
+        baseView.widthAnchor.constraint(equalToConstant: deviceWidth * widthRatio).isActive = true
         baseView.centerXAnchor.constraint(equalTo: view.centerXAnchor,constant: 0).isActive = true
         baseViewCenterYConstraint =
             baseView.centerYAnchor.constraint(equalTo: view.centerYAnchor,constant: contentOffset)

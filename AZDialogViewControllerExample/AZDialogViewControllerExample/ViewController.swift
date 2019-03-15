@@ -18,7 +18,6 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        DialogDefaults.widthRatio = 1
         // Do any additional setup after loading the view, typically from a nib.
     }
     
@@ -342,13 +341,13 @@ class ViewController: UIViewController {
     }
     
     func tableViewDialog(){
-        let dialog = AZDialogViewController(title: "Switch Account", message: nil)
+        let dialog = AZDialogViewController(title: "Switch Account", message: nil,widthRatio: 1.0)
         
         dialog.showSeparator = false
         
         let container = dialog.container
         
-        dialog.customViewSizeRatio = 1.0
+        dialog.customViewSizeRatio = ( view.bounds.height - 100) / view.bounds.width
         
         let tableView = UITableView(frame: .zero, style: .plain)
         
@@ -359,19 +358,30 @@ class ViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.separatorColor = .clear
+        tableView.bounces = false
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
-        tableView.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
+        tableView.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -32).isActive = true
         tableView.leftAnchor.constraint(equalTo: container.leftAnchor).isActive = true
         tableView.rightAnchor.constraint(equalTo: container.rightAnchor).isActive = true
-        
-        
-        dialog.show(in: self)
+
+        dialog.show(in: self) { dialog in
+            dialog.contentOffset = self.view.frame.height / 2.0 - dialog.estimatedHeight / 2.0 + 15
+        }
         
     }
     
-    var items: [String] = ["Account 1","Account 2","Account 3","Account 4","Account 5"]
+    @IBAction func fullScreenDialog(_ sender: UIButton) {
+        tableViewDialog()
+    }
+    var items: [String] = {
+        var list = [String]()
+        for i in 0..<100 {
+            list.append("Account \(i)")
+        }
+        return list
+    }()
     
     func handlerForIndex(_ index: Int)->ActionHandler{
         switch index{
@@ -463,6 +473,17 @@ class HighlightableButton: UIButton{
         }get{
             return super.isHighlighted
         }
+    }
+}
+
+class ClickThroughTableView: UITableView {
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        for subview in subviews {
+            if !subview.isHidden && subview.isUserInteractionEnabled && subview.point(inside: convert(point, to: subview), with: event) {
+                return true
+            }
+        }
+        return false
     }
 }
 

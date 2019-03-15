@@ -61,6 +61,13 @@
                                     <action selector="click:" destination="BYZ-38-t0r" eventType="touchUpInside" id="03L-o2-i2x"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Uz5-yu-Q8j">
+                                <rect key="frame" x="149.5" y="400.5" width="76" height="30"/>
+                                <state key="normal" title="Full Screen"/>
+                                <connections>
+                                    <action selector="fullScreenDialog:" destination="BYZ-38-t0r" eventType="touchUpInside" id="fHs-3n-jMK"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -70,8 +77,10 @@
                             <constraint firstItem="6we-PM-8nh" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="IBz-Qe-xnk"/>
                             <constraint firstItem="3YO-bR-uly" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="RBa-jg-5su"/>
                             <constraint firstItem="6we-PM-8nh" firstAttribute="top" secondItem="0Aa-YH-VaB" secondAttribute="bottom" constant="8" id="Wcf-7v-a7K"/>
+                            <constraint firstItem="Uz5-yu-Q8j" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Zjh-6T-4IL"/>
                             <constraint firstItem="0Aa-YH-VaB" firstAttribute="top" secondItem="46Q-bz-5vc" secondAttribute="bottom" constant="8" id="krK-Y9-Rcq"/>
                             <constraint firstItem="46Q-bz-5vc" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="r3s-9s-v1m"/>
+                            <constraint firstItem="Uz5-yu-Q8j" firstAttribute="top" secondItem="3YO-bR-uly" secondAttribute="bottom" constant="8" id="ui2-qf-m1z"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="wV2-iZ-0sl"/>
