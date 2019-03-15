@@ -242,8 +242,6 @@ class ViewController: UIViewController {
         
         dialogController.show(in: self)
         
-        
-        
     }
     
     func reportUserDialog(controller: UIViewController){
@@ -473,17 +471,6 @@ class HighlightableButton: UIButton{
         }get{
             return super.isHighlighted
         }
-    }
-}
-
-class ClickThroughTableView: UITableView {
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        for subview in subviews {
-            if !subview.isHidden && subview.isUserInteractionEnabled && subview.point(inside: convert(point, to: subview), with: event) {
-                return true
-            }
-        }
-        return false
     }
 }
 

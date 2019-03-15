@@ -139,7 +139,26 @@ dialog.show(in: self)
 self.present(dialog, animated: false, completion: nil)
 ```
 
+**Show with completion**
+```swift
+dialog.show(in: self) { dialog in
+    // show and then change the offset
+    dialog.contentOffset = self.view.frame.height / 2.0 - dialog.estimatedHeight / 2.0 + 15
+}
+```
+
 ## Design
+
+#### Change Dialog Width
+
+This has been a requested feature and so I decided to add it. You can change the width of the dialog frame as a ratio in respect to the width of the main view. This can only be doing using the initalizer and the width cannot be modified afterwards.
+
+```swift
+let dialog = AZDialogViewController(title: "Switch Account", message: "My Message", widthRatio: 1.0)
+```
+This will display a dialog which has the same width as the the controller it is presented in.
+
+The default value is `0.75`
 
 #### Customize Action Buttons Style:
 ```swift
