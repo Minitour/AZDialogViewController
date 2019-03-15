@@ -188,7 +188,6 @@ class ViewController: UIViewController {
         }
         
         dialogController.dismissWithOutsideTouch = true
-        
         dialogController.show(in: self)
     }
     
@@ -245,7 +244,9 @@ class ViewController: UIViewController {
     }
     
     func reportUserDialog(controller: UIViewController){
-        let dialogController = AZDialogViewController(title: "Minitour has been blocked.", message: "Let us know your reason for blocking them?")
+        let dialogController = AZDialogViewController(title: "Minitour has been blocked.",
+                                                      message: "Let us know your reason for blocking them?",
+                                                      widthRatio: 0.8)
         dialogController.dismissDirection = .none
         dialogController.dismissWithOutsideTouch = false
         
@@ -266,7 +267,8 @@ class ViewController: UIViewController {
         }))
         
         dialogController.addAction(AZDialogAction(title: "Other", handler: { (dialog) -> (Void) in
-            dialog.dismiss()
+            dialog.removeSection(0)
+            //dialog.dismiss()
         }))
         
         dialogController.buttonStyle = { (button,height,position) in
@@ -276,8 +278,17 @@ class ViewController: UIViewController {
             button.layer.masksToBounds = true
             button.layer.borderColor = self.primaryColor.cgColor
         }
-        
-        dialogController.show(in: controller)
+
+        let imageView = UIImageView(image: #imageLiteral(resourceName: "image"))
+        imageView.contentMode = .scaleAspectFill
+        imageView.heightAnchor.constraint(equalToConstant: 100.0).isActive = true
+
+
+        dialogController.show(in: controller) {
+            $0.section(view: imageView)
+            imageView.superview?.superview?.layer.masksToBounds = true
+        }
+
     }
 
     func reportDialog(){
@@ -445,6 +456,14 @@ extension UIImage {
 
 class HighlightableButton: UIButton{
 
+    var action: ((UIButton)->Void)? = nil
+
+    convenience init(_ action: ((UIButton)->Void)? = nil ) {
+        self.init()
+        self.action = action
+        addTarget(self, action: #selector(didClick(_:)), for: .touchUpInside)
+    }
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
@@ -471,6 +490,10 @@ class HighlightableButton: UIButton{
         }get{
             return super.isHighlighted
         }
+    }
+
+    @objc func didClick(_ sender: UIButton) {
+        self.action?(self)
     }
 }
 

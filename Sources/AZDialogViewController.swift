@@ -614,7 +614,57 @@ open class AZDialogViewController: UIViewController{
         onAppearCompletion = completion
         controller.present(self, animated: false,completion: nil)
     }
-    
+
+    @objc
+    @discardableResult
+    open func section(view: UIView) -> Self {
+
+        guard let baseView = baseView else {
+            print("Dialog has not been displayed yet. Make sure to display it using \"show()\" before creating a section.")
+            return self
+        }
+
+        let contentView = SectionView()
+        contentView.isUserInteractionEnabled = true
+        contentView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(handlePanGestureForSection(_:))))
+
+        contentView.layer.cornerRadius = baseView.layer.cornerRadius
+        contentView.layer.backgroundColor = alertBackgroundColor?.cgColor ?? UIColor.white.cgColor
+
+        let stackView = UIStackView()
+        stackView.distribution = .fill
+
+        contentView.addSubview(stackView)
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor).isActive = true
+        stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor).isActive = true
+        stackView.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
+        let bottomStackAnchor = stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+        bottomStackAnchor.priority = .init(rawValue: 999)
+        bottomStackAnchor.isActive = true
+
+        let lastView: UIView = baseView.subviews.last as? SectionView ?? baseView
+
+        baseView.addSubview(contentView)
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.centerXAnchor.constraint(equalTo: baseView.centerXAnchor).isActive = true
+        contentView.topAnchor.constraint(equalTo: lastView.bottomAnchor,constant: spacing).isActive = true
+        contentView.widthAnchor.constraint(equalTo: baseView.widthAnchor).isActive = true
+
+        stackView.addArrangedSubview(view)
+
+        return self
+    }
+
+    open func removeSection(_ index: Int) {
+        guard let baseView = baseView else { return }
+
+        let sections = baseView.subviews.filter { $0 is SectionView }
+
+        if sections.count > index {
+            sections[index].removeFromSuperview()
+        }
+    }
     
     //MARK: - Overriding methods
     
@@ -955,11 +1005,15 @@ open class AZDialogViewController: UIViewController{
         
         
     }
-    
+
+    @objc internal func handlePanGestureForSection(_ sender: UIPanGestureRecognizer){
+        handlePanGesture(sender)
+    }
+
     /// Selector method - used to handle view touch.
     ///
     /// - Parameter sender: The Gesture Recognizer.
- @objc internal func handleTapGesture(_ sender: UITapGestureRecognizer){
+    @objc internal func handleTapGesture(_ sender: UITapGestureRecognizer){
         if sender.view is BaseView || sender.view == container{
             return
         }
@@ -1313,7 +1367,18 @@ fileprivate class BaseView: UIView{
         lastLocation = self.center
         super.touchesBegan(touches, with: event)
     }
+
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        for subview in subviews {
+            if !subview.isHidden && subview.isUserInteractionEnabled && subview.point(inside: convert(point, to: subview), with: event) {
+                return true
+            }
+        }
+        return false
+    }
 }
+
+fileprivate class SectionView: UIView {}
 
 fileprivate extension UIEdgeInsets{
     var sum: CGFloat {
