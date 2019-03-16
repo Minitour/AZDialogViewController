@@ -212,7 +212,8 @@ open class AZDialogViewController: UIViewController{
     @objc
     open fileprivate(set) lazy var blurView: UIVisualEffectView = UIVisualEffectView()
 
-    @objc fileprivate(set) lazy var gestureRecognizer = UIPanGestureRecognizer(
+    @objc
+    open fileprivate(set) lazy var gestureRecognizer = UIPanGestureRecognizer(
         target: self,
         action: #selector(AZDialogViewController.handlePanGesture(_:))
     )
