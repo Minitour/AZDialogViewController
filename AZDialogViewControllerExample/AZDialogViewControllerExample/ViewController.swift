@@ -140,7 +140,7 @@ class ViewController: UIViewController {
             return true
         }
         
-        dialogController.addAction(AZDialogAction(title: "Subscribe", handler: { [weak self] (dialog) -> (Void) in
+        dialogController.addAction(AZDialogAction(title: "Subscribe", handler: { (dialog) -> (Void) in
             //dialog.title = "title"
             //dialog.message = "new message"
             //dialog.image = dialog.image == nil ? #imageLiteral(resourceName: "ign") : nil
@@ -348,10 +348,13 @@ class ViewController: UIViewController {
         
         dialogController.show(in: self)
     }
-    
+
+    var tableViewDialogController: AZDialogViewController?
+
     func tableViewDialog(){
         let dialog = AZDialogViewController(title: "Switch Account", message: nil,widthRatio: 1.0)
-        
+        tableViewDialogController = dialog
+
         dialog.showSeparator = false
         
         let container = dialog.container
@@ -367,6 +370,7 @@ class ViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.separatorColor = .clear
+        //tableView.bouncesZoom = false
         tableView.bounces = false
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -374,6 +378,9 @@ class ViewController: UIViewController {
         tableView.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -32).isActive = true
         tableView.leftAnchor.constraint(equalTo: container.leftAnchor).isActive = true
         tableView.rightAnchor.constraint(equalTo: container.rightAnchor).isActive = true
+
+        dialog.gestureRecognizer.delegate = self
+        dialog.dismissDirection = .bottom
 
         dialog.show(in: self) { dialog in
             dialog.contentOffset = self.view.frame.height / 2.0 - dialog.estimatedHeight / 2.0 + 15
@@ -409,6 +416,9 @@ class ViewController: UIViewController {
         }
         
     }
+
+    var shouldDismiss: Bool = false
+    var velocity: CGFloat = 0.0
     
 }
 
@@ -417,7 +427,49 @@ class ViewController: UIViewController {
 extension ViewController: UITableViewDelegate{
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        dismiss(animated: true, completion: nil)
+        tableViewDialogController?.dismiss()
+    }
+
+
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        let duration = Double(1.0/abs(velocity))
+        if scrollView.isAtTop {
+            if shouldDismiss {
+                tableViewDialogController?.animationDuration = duration
+                tableViewDialogController?.dismiss()
+            }else {
+                tableViewDialogController?.applyAnimatedTranslation(-velocity * 35.0,duration: min(max(duration,0.2),0.4))
+            }
+
+        }
+    }
+
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        shouldDismiss = velocity.y < -3.0
+        self.velocity = velocity.y
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        scrollView.bounces = !scrollView.isAtTop
+
+    }
+}
+
+extension ViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+
+        let optionalTableView: UITableView? = otherGestureRecognizer.view as? UITableView
+
+        guard let tableView = optionalTableView,
+            let panGesture = gestureRecognizer as? UIPanGestureRecognizer,
+            let direction = panGesture.direction
+            else { return false }
+
+        if tableView.isAtTop && direction == .down {
+            return true
+        } else {
+            return false
+        }
     }
 }
 
@@ -498,3 +550,49 @@ class HighlightableButton: UIButton{
 }
 
 
+public extension UIScrollView {
+
+    var isAtTop: Bool {
+        return contentOffset.y <= verticalOffsetForTop
+    }
+
+    var isAtBottom: Bool {
+        return contentOffset.y >= verticalOffsetForBottom
+    }
+
+    var verticalOffsetForTop: CGFloat {
+        let topInset = contentInset.top
+        return -topInset
+    }
+
+    var verticalOffsetForBottom: CGFloat {
+        let scrollViewHeight = bounds.height
+        let scrollContentSizeHeight = contentSize.height
+        let bottomInset = contentInset.bottom
+        let scrollViewBottomOffset = scrollContentSizeHeight + bottomInset - scrollViewHeight
+        return scrollViewBottomOffset
+    }
+
+}
+
+public enum PanDirection: Int {
+    case up, down, left, right
+    public var isVertical: Bool { return [.up, .down].contains(self) }
+    public var isHorizontal: Bool { return !isVertical }
+}
+
+public extension UIPanGestureRecognizer {
+
+    public var direction: PanDirection? {
+        let velocity = self.velocity(in: view)
+        let isVertical = abs(velocity.y) > abs(velocity.x)
+        switch (isVertical, velocity.x, velocity.y) {
+        case (true, _, let y) where y < 0: return .up
+        case (true, _, let y) where y > 0: return .down
+        case (false, let x, _) where x > 0: return .right
+        case (false, let x, _) where x < 0: return .left
+        default: return nil
+        }
+    }
+
+}

@@ -212,6 +212,11 @@ open class AZDialogViewController: UIViewController{
     @objc
     open fileprivate(set) lazy var blurView: UIVisualEffectView = UIVisualEffectView()
 
+    @objc fileprivate(set) lazy var gestureRecognizer = UIPanGestureRecognizer(
+        target: self,
+        action: #selector(AZDialogViewController.handlePanGesture(_:))
+    )
+
     @objc
     open var dialogView: UIView? {
         return baseView
@@ -306,6 +311,7 @@ open class AZDialogViewController: UIViewController{
                 UIView.animate(withDuration: animationDuration){
                     baseView.center = CGPoint(x: center.x ,y: center.y + offset)
                 }
+                baseView.lastLocation = baseView.center
             }
         }
     }
@@ -615,6 +621,11 @@ open class AZDialogViewController: UIViewController{
         controller.present(self, animated: false,completion: nil)
     }
 
+
+    /// Use this function to add additional sections to an existing dialog. Note that you can use this function only when the dialog has already appeared.
+    ///
+    /// - Parameter view: The view you wish to add.
+    /// - Returns: Self.
     @objc
     @discardableResult
     open func section(view: UIView) -> Self {
@@ -656,6 +667,10 @@ open class AZDialogViewController: UIViewController{
         return self
     }
 
+
+    /// Use this function to remove a section at a certain index.
+    ///
+    /// - Parameter index: The index of the section.
     open func removeSection(_ index: Int) {
         guard let baseView = baseView else { return }
 
@@ -663,6 +678,28 @@ open class AZDialogViewController: UIViewController{
 
         if sections.count > index {
             sections[index].removeFromSuperview()
+        }
+    }
+
+
+    /// This function applies translation to the dialog with animation and then returns it to its original position.
+    ///
+    /// - Parameters:
+    ///   - translation: The translation value.
+    ///   - duration: The duration of the overall animation.
+    open func applyAnimatedTranslation(_ translation: CGFloat, duration: TimeInterval = 0.35){
+
+        let yTranslation = baseView.lastLocation.y + translation
+
+        UIView.animate(withDuration: duration / 2.0, animations: { [weak self] in
+            guard let `self` = self else { return }
+            self.baseView.center = CGPoint(x: self.baseView.lastLocation.x , y: yTranslation)
+        }) { (completion) in
+            var point = self.view.center
+            point.y = point.y + self.contentOffset
+            UIView.animate(withDuration: duration / 2.0) {
+                [weak self] () -> Void in self?.baseView.center = point
+            }
         }
     }
     
@@ -778,7 +815,7 @@ open class AZDialogViewController: UIViewController{
         createGesutre(for: baseView)
         createGesutre(for: container)
         
-        baseView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(AZDialogViewController.handlePanGesture(_:))))
+        baseView.addGestureRecognizer(gestureRecognizer)
         
         baseView.layer.cornerRadius = 15
         baseView.layer.backgroundColor = alertBackgroundColor?.cgColor ?? UIColor.white.cgColor
@@ -878,12 +915,11 @@ open class AZDialogViewController: UIViewController{
         self.widthRatio = widthRatio
     }
     
-    
     /// Selector method - used to handle the dragging.
     ///
     /// - Parameter sender: The Gesture Recognizer.
     @objc internal func handlePanGesture(_ sender: UIPanGestureRecognizer){
-        
+
         //if panning is disabled return
         if !allowDragGesture{
             return
