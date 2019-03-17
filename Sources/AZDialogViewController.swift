@@ -450,9 +450,8 @@ open class AZDialogViewController: UIViewController{
                 //nil
                 if let _ = imageView.image {
                     //old value not nil
-                    updateConstraints(showImage: false){ [weak self] in
-                        self?.imageView.image = nil
-                    }
+                    self.imageView.image = nil
+                    updateConstraints(showImage: false)
                 }
             }
         }
