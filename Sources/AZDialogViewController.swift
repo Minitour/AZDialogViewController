@@ -1259,7 +1259,10 @@ open class AZDialogViewController: UIViewController{
     
     // Setup Tool Items
     fileprivate func setupToolItems(){
-        if leftToolStyle?(leftToolItem) ?? false{
+
+
+
+        if let leftToolItem = leftToolItem, leftToolStyle?(leftToolItem) ?? false{
             baseView.addSubview(leftToolItem)
             leftToolItem.topAnchor.constraint(equalTo: baseView.topAnchor, constant: spacing*2).isActive = true
             leftToolItem.leftAnchor.constraint(equalTo: baseView.leftAnchor,constant: spacing*2).isActive = true
@@ -1267,7 +1270,7 @@ open class AZDialogViewController: UIViewController{
             leftToolItem.addTarget(self, action: #selector(AZDialogViewController.handleLeftTool(_:)), for: .touchUpInside)
         }
         
-        if rightToolStyle?(rightToolItem) ?? false{
+        if let rightToolItem = rightToolItem, rightToolStyle?(rightToolItem) ?? false{
             baseView.addSubview(rightToolItem)
             rightToolItem.topAnchor.constraint(equalTo: baseView.topAnchor, constant: spacing*2).isActive = true
             rightToolItem.rightAnchor.constraint(equalTo: baseView.rightAnchor,constant: -spacing*2).isActive = true
