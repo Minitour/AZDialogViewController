@@ -265,11 +265,19 @@ open class AZDialogViewController: UIViewController{
     
     /// Left Tool Style, is the style (closure) that is called when setting up the left tool item. Make sure to return true to show the item.
     @objc
-    open var leftToolStyle: ((UIButton)->Bool)?
+    open var leftToolStyle: ((UIButton)->Bool)?{
+        didSet{
+            setupToolItems()
+        }
+    }
     
     /// Right Tool Style, is the style (closure) that is called when setting up the right tool item. Make sure to return true to show the item.
     @objc
-    open var rightToolStyle: ((UIButton)->Bool)?
+    open var rightToolStyle: ((UIButton)->Bool)? {
+        didSet{
+            setupToolItems()
+        }
+    }
     
     /// The action that is triggered when tool is clicked.
     @objc
@@ -1263,6 +1271,7 @@ open class AZDialogViewController: UIViewController{
 
 
         if let leftToolItem = leftToolItem, leftToolStyle?(leftToolItem) ?? false{
+            leftToolItem.removeFromSuperview()
             baseView.addSubview(leftToolItem)
             leftToolItem.topAnchor.constraint(equalTo: baseView.topAnchor, constant: spacing*2).isActive = true
             leftToolItem.leftAnchor.constraint(equalTo: baseView.leftAnchor,constant: spacing*2).isActive = true
@@ -1271,6 +1280,7 @@ open class AZDialogViewController: UIViewController{
         }
         
         if let rightToolItem = rightToolItem, rightToolStyle?(rightToolItem) ?? false{
+            rightToolItem.removeFromSuperview()
             baseView.addSubview(rightToolItem)
             rightToolItem.topAnchor.constraint(equalTo: baseView.topAnchor, constant: spacing*2).isActive = true
             rightToolItem.rightAnchor.constraint(equalTo: baseView.rightAnchor,constant: -spacing*2).isActive = true
