@@ -13,7 +13,7 @@ public typealias ActionHandler = ((AZDialogViewController)->(Void))
 public struct DialogDefaults {
 
     /// The spaving ratio between the items in the stack (vertically) in respect to the height of the device.
-    public static var spacingRatio: CGFloat = 0.012
+    public static var spacingRatio: CGFloat = 0.015
 
     /// The font size of the title in respect to the device height.
     public static var titleFontSizeRatio: CGFloat = 0.0275
